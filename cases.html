@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BOT Worklog – Cases</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <div class="title">BOT Cable MRI</div>
+        <div class="subtitle">Worklog tool</div>
+      </div>
+    </div>
+  
+    <nav class="nav">
+      <a href="index.html" class="nav-link" data-page="worklog">Worklog</a>
+      <a href="cases.html" class="nav-link" data-page="cases">Cases</a>
+      <a href="stats.html" class="nav-link" data-page="stats">Stats</a>
+    </nav>
+  </header>
+  
+
+  <main class="container">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Cases</div>
+          <div class="muted" id="countLabel"></div>
+        </div>
+        <div class="panel-tools">
+          <input class="input" id="searchInput" placeholder="Search..." />
+          <select class="input" id="outcomeFilter"></select>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="col">
+          <h3 class="section-title">Outbound (CMR) cases</h3>
+          <div class="case-list" id="outboundList"></div>
+        </div>
+      
+        <div class="col">
+          <h3 class="section-title">Inbound cases</h3>
+          <div class="case-list" id="inboundList"></div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/app-cases.js"></script>
+</body>
+</html>

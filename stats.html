@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BOT Worklog – Stats</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body>
+  <header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <div>
+      <div class="title">BOT Cable MRI</div>
+      <div class="subtitle">Worklog tool</div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-link" data-page="worklog">Worklog</a>
+    <a href="cases.html" class="nav-link" data-page="cases">Cases</a>
+    <a href="stats.html" class="nav-link" data-page="stats">Stats</a>
+  </nav>
+</header>
+
+
+   
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Dashboard</div>
+          <div class="muted" id="rangeLabel">—</div>
+        </div>
+
+        <div class="panel-tools">
+          <label class="muted" for="dayPicker">Day</label>
+          <input class="input" id="dayPicker" type="date" />
+          <button class="btn ghost" id="btnToday" type="button">Today</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <!-- General -->
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-title">General stats</div>
+            <div class="stat-chip">Total</div>
+          </div>
+          <div class="stat-value" id="totalCases">0</div>
+          <div class="stat-sub muted" id="totalSub">cases in range</div>
+        </div>
+
+        <!-- Inbound -->
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-title">Inbound</div>
+            <div class="stat-chip">Inbound</div>
+          </div>
+          <div class="stat-value" id="inboundCases">0</div>
+          <div class="stat-sub muted" id="inboundSub">—</div>
+        </div>
+
+        <!-- Outbound -->
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-title">Outbound</div>
+            <div class="stat-chip">Outbound</div>
+          </div>
+          <div class="stat-value" id="outboundCases">0</div>
+          <div class="stat-sub muted" id="outboundSub">—</div>
+        </div>
+
+        <!-- Called -->
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-title">Customers called</div>
+            <div class="stat-chip">Called</div>
+          </div>
+          <div class="stat-value" id="calledCustomers">0</div>
+          <div class="stat-sub muted" id="calledSub">outbound called</div>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="mini-grid">
+          <div class="mini-card">
+            <div class="mini-title">Outbound call rate</div>
+            <div class="mini-row">
+              <div class="mini-bar">
+                <div class="mini-bar-fill" id="callRateBar" style="width:0%"></div>
+              </div>
+              <div class="mini-right" id="callRateLabel">0%</div>
+            </div>
+            <div class="muted" id="callRateSub">called / outbound</div>
+          </div>
+
+          <div class="mini-card">
+            <div class="mini-title">Quick notes</div>
+            <div class="muted">
+              • Inbound = interaction == <strong>Inbound</strong><br/>
+              • Outbound = alles wat <strong>niet</strong> inbound is<br/>
+              • “Customers called” = outbound met vinkje <strong>Customer Contacted</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/app-stats.js"></script>
+</body>
+</html>

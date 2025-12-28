@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BOT Worklog – New/Edit</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <div class="title">BOT Cable MRI</div>
+        <div class="subtitle">Worklog tool</div>
+      </div>
+    </div>
+  
+    <nav class="nav">
+      <a href="index.html" class="nav-link" data-page="worklog">Worklog</a>
+      <a href="cases.html" class="nav-link" data-page="cases">Cases</a>
+      <a href="stats.html" class="nav-link" data-page="stats">Stats</a>
+    </nav>
+  </header>
+  
+
+  <main class="container">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Worklog</div>
+          <div class="muted" id="editLabel">Create a new case</div>
+        </div>
+        <div class="panel-tools">
+          <button class="btn" id="copyBtn" type="button">Copy</button>
+          <button class="btn ghost" id="resetBtn" type="button">Reset</button>
+          <button class="btn primary" id="saveBtn" type="button">Save</button>
+          <button class="btn ghost" id="resumeBtn" type="button">Resume previous</button>
+          <button class="btn" id="interruptBtn" type="button">New interrupt case</button>
+        </div>
+      </div>
+
+      <form class="grid" id="worklogForm" autocomplete="off">
+        <label class="field">
+          <span>Customer Code</span>
+          <input class="input" id="customerCode" placeholder="e.g. 1.8045729" />
+        </label>
+
+        <label class="field col2">
+          <span>Problem Description</span>
+          <textarea class="input" id="problemDescription" rows="2"></textarea>
+        </label>
+
+        <label class="field col2">
+          <span>(Pre-)Analysis</span>
+          <textarea class="input" id="preAnalysis" rows="3"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Interaction</span>
+          <select class="input" id="interaction"></select>
+        </label>
+
+        <label class="field">
+          <span>Contact Type</span>
+          <select class="input" id="contactType"></select>
+        </label>
+
+        <label class="field">
+          <span>Outcome</span>
+          <select class="input" id="outcome"></select>
+        </label>
+
+        <label class="field checkbox-field">
+          <span>&nbsp;</span>
+          <label class="checkbox">
+            <input type="checkbox" id="customerCalled" />
+            <span>Customer contacted (call placed)</span>
+          </label>
+        </label>
+        
+
+        <label class="field col2">
+          <span>Actions Done</span>
+          <textarea class="input" id="actionsDone" rows="3"></textarea>
+        </label>
+
+        <label class="field col2">
+          <span>Ring Ring (if available)</span>
+          <textarea class="input" id="ringRing" rows="2"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Technician Date (if booked)</span>
+          <input class="input" id="technicianDate" placeholder="e.g. 02/01" />
+        </label>
+
+        <label class="field col2">
+          <span>To Do / Required Actions</span>
+          <textarea class="input" id="todoRequired" rows="3"></textarea>
+        </label>
+      </form>
+
+      <div class="hint">
+        <strong>Note:</strong> cases worden lokaal opgeslagen (per toestel/browser).
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/app-worklog.js"></script>
+</body>
+</html>

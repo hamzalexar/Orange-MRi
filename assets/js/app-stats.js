@@ -7,7 +7,6 @@ window.addEventListener("error", (e) => {
   console.error("JS error:", e.message);
 });
 
-
 const els = {
   rangeLabel: qs("#rangeLabel"),
 
@@ -37,6 +36,8 @@ const els = {
   chartDay: qs("#chartDay"),
   chartWeek: qs("#chartWeek"),
   chartMonth: qs("#chartMonth"),
+
+  flowFilter: qs("#flowFilter"),
 };
 
 // -------- date helpers
@@ -93,6 +94,12 @@ function isOutbound(c) {
   return c.interaction !== "Inbound";
 }
 
+function matchesFlow(c, flow) {
+  if (flow === "inbound") return isInbound(c);
+  if (flow === "outbound") return isOutbound(c);
+  return true; // all
+}
+
 // -------- picker helpers
 function fillYearPicker(allCases) {
   const years = new Set();
@@ -112,11 +119,13 @@ function fillYearPicker(allCases) {
     els.yearPicker.appendChild(opt);
   }
 }
+
 function setPickerVisibility(period) {
   els.dayPicker.style.display = period === "day" ? "" : "none";
   els.monthPicker.style.display = period === "month" ? "" : "none";
   els.yearPicker.style.display = period === "year" ? "" : "none";
 }
+
 function getRange(period) {
   const now = new Date();
 
@@ -160,25 +169,30 @@ function renderBarChart(container, labels, values) {
   const gap = 8;
   const barW = Math.max(6, (innerW - gap * (n - 1)) / n);
 
-  // grid lines (y = 0, 50, 100%)
-  const grid = [0.0, 0.5, 1.0].map(p => {
-    const y = padT + innerH - innerH * p;
-    return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(0,0,0,0.08)" />`;
-  }).join("");
+  const grid = [0.0, 0.5, 1.0]
+    .map((p) => {
+      const y = padT + innerH - innerH * p;
+      return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(0,0,0,0.08)" />`;
+    })
+    .join("");
 
-  const bars = values.map((v, i) => {
-    const x = padL + i * (barW + gap);
-    const bh = (v / m) * innerH;
-    const y = padT + (innerH - bh);
-    return `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="8" fill="var(--accent)"></rect>`;
-  }).join("");
+  const bars = values
+    .map((v, i) => {
+      const x = padL + i * (barW + gap);
+      const bh = (v / m) * innerH;
+      const y = padT + (innerH - bh);
+      return `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="8" fill="var(--accent)"></rect>`;
+    })
+    .join("");
 
   const tickEvery = n > 16 ? Math.ceil(n / 8) : 1;
-  const xLabels = labels.map((t, i) => {
-    if (i % tickEvery !== 0) return "";
-    const x = padL + i * (barW + gap) + barW / 2;
-    return `<text x="${x}" y="${h - 16}" text-anchor="middle" font-size="12" fill="rgba(2,6,23,0.65)">${t}</text>`;
-  }).join("");
+  const xLabels = labels
+    .map((t, i) => {
+      if (i % tickEvery !== 0) return "";
+      const x = padL + i * (barW + gap) + barW / 2;
+      return `<text x="${x}" y="${h - 16}" text-anchor="middle" font-size="12" fill="rgba(2,6,23,0.65)">${t}</text>`;
+    })
+    .join("");
 
   const yMax = `<text x="${padL - 8}" y="${padT + 10}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">${m}</text>`;
   const yZero = `<text x="${padL - 8}" y="${padT + innerH}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">0</text>`;
@@ -195,26 +209,33 @@ function renderLineChart(container, labels, values) {
   const n = Math.max(values.length, 1);
   const m = Math.max(maxVal(values), 1);
 
-  const grid = [0.0, 0.5, 1.0].map(p => {
-    const y = padT + innerH - innerH * p;
-    return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(0,0,0,0.08)" />`;
-  }).join("");
+  const grid = [0.0, 0.5, 1.0]
+    .map((p) => {
+      const y = padT + innerH - innerH * p;
+      return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(0,0,0,0.08)" />`;
+    })
+    .join("");
 
   const pts = values.map((v, i) => {
     const x = padL + (n === 1 ? 0 : (i / (n - 1)) * innerW);
     const y = padT + innerH - (v / m) * innerH;
-    return { x, y, v };
+    return { x, y };
   });
 
-  const poly = `<polyline fill="none" stroke="var(--accent)" stroke-width="3" points="${pts.map(p => `${p.x},${p.y}`).join(" ")}" />`;
-  const dots = pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--accent)" />`).join("");
+  const poly = `<polyline fill="none" stroke="var(--accent)" stroke-width="3" points="${pts
+    .map((p) => `${p.x},${p.y}`)
+    .join(" ")}" />`;
+
+  const dots = pts.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--accent)" />`).join("");
 
   const tickEvery = n > 16 ? Math.ceil(n / 8) : 1;
-  const xLabels = labels.map((t, i) => {
-    if (i % tickEvery !== 0) return "";
-    const x = padL + (n === 1 ? 0 : (i / (n - 1)) * innerW);
-    return `<text x="${x}" y="${h - 16}" text-anchor="middle" font-size="12" fill="rgba(2,6,23,0.65)">${t}</text>`;
-  }).join("");
+  const xLabels = labels
+    .map((t, i) => {
+      if (i % tickEvery !== 0) return "";
+      const x = padL + (n === 1 ? 0 : (i / (n - 1)) * innerW);
+      return `<text x="${x}" y="${h - 16}" text-anchor="middle" font-size="12" fill="rgba(2,6,23,0.65)">${t}</text>`;
+    })
+    .join("");
 
   const yMax = `<text x="${padL - 8}" y="${padT + 10}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">${m}</text>`;
   const yZero = `<text x="${padL - 8}" y="${padT + innerH}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">0</text>`;
@@ -228,8 +249,7 @@ function groupByHour(cases, fromTs, toTs) {
   for (const c of cases) {
     const t = caseTime(c);
     if (t < fromTs || t > toTs) continue;
-    const d = new Date(t);
-    bins[d.getHours()]++;
+    bins[new Date(t).getHours()]++;
   }
   return bins;
 }
@@ -241,7 +261,7 @@ function groupLastNDays(cases, endTs, days = 14) {
   for (let i = 0; i < days; i++) {
     const dayStart = addDays(startTs, i);
     const dayEnd = endOfDay(new Date(dayStart));
-    const count = cases.filter(c => inRange(c, dayStart, dayEnd)).length;
+    const count = cases.filter((c) => inRange(c, dayStart, dayEnd)).length;
     labels.push(new Date(dayStart).toLocaleDateString(undefined, { month: "2-digit", day: "2-digit" }));
     values.push(count);
   }
@@ -249,7 +269,6 @@ function groupLastNDays(cases, endTs, days = 14) {
 }
 
 function weekKey(ts) {
-  // ISO-ish: year-week number (simple)
   const d = new Date(ts);
   const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dayNum = tmp.getUTCDay() || 7;
@@ -260,7 +279,6 @@ function weekKey(ts) {
 }
 
 function groupLastNWeeks(cases, endTs, weeks = 8) {
-  // build week buckets ending at endTs
   const end = endTs;
   const labels = [];
   const values = [];
@@ -272,7 +290,7 @@ function groupLastNWeeks(cases, endTs, weeks = 8) {
     keys.push(`${y}-W${String(w).padStart(2, "0")}`);
   }
 
-  const map = new Map(keys.map(k => [k, 0]));
+  const map = new Map(keys.map((k) => [k, 0]));
   for (const c of cases) {
     const t = caseTime(c);
     if (t > end) continue;
@@ -282,7 +300,7 @@ function groupLastNWeeks(cases, endTs, weeks = 8) {
   }
 
   for (const k of keys) {
-    labels.push(k.split("-W")[1]); // show week nr only
+    labels.push(k.split("-W")[1]);
     values.push(map.get(k) ?? 0);
   }
   return { labels, values };
@@ -296,11 +314,10 @@ function groupLastNMonths(cases, endTs, months = 12) {
   const keys = [];
   for (let i = months - 1; i >= 0; i--) {
     const d = new Date(end.getFullYear(), end.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    keys.push(key);
+    keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
   }
 
-  const map = new Map(keys.map(k => [k, 0]));
+  const map = new Map(keys.map((k) => [k, 0]));
   for (const c of cases) {
     const t = caseTime(c);
     const d = new Date(t);
@@ -332,16 +349,23 @@ function render() {
 
   const { fromTs, toTs, label } = getRange(period);
 
-  const items = all.filter(c => inRange(c, fromTs, toTs));
+  const flow = els.flowFilter?.value || "all";
+
+  // KPI range + flow
+  const items = all.filter((c) => inRange(c, fromTs, toTs) && matchesFlow(c, flow));
+
+  // charts should also respect flow
+  const filteredAll = all.filter((c) => matchesFlow(c, flow));
+
+  console.log("render() cases:", all.length, "flow:", flow, "items:", items.length);
 
   const total = items.length;
   const inbound = items.filter(isInbound);
   const outbound = items.filter(isOutbound);
-  const outboundCalled = outbound.filter(c => c.customerCalled === true);
+  const outboundCalled = outbound.filter((c) => c.customerCalled === true);
 
   els.rangeLabel.textContent = `Showing: ${period.toUpperCase()} — ${label}`;
 
-  // KPI
   els.totalCases.textContent = String(total);
   els.totalSub.textContent = `total in ${period}`;
 
@@ -360,19 +384,17 @@ function render() {
   els.callRateSub.textContent = `${outboundCalled.length} / ${outbound.length} outbound`;
 
   // Charts
-  // Hour: for DAY = by hour in that day; otherwise by hour-of-day in selected range
-  const hourBins = groupByHour(all, fromTs, toTs);
+  const hourBins = groupByHour(filteredAll, fromTs, toTs);
   const hourLabels = Array.from({ length: 24 }, (_, i) => String(i));
   renderLineChart(els.chartHour, hourLabels, hourBins);
 
-  // Day/Week/Month: always show rolling charts ending at end of selected range
-  const day = groupLastNDays(all, toTs, 14);
+  const day = groupLastNDays(filteredAll, toTs, 14);
   renderBarChart(els.chartDay, day.labels, day.values);
 
-  const week = groupLastNWeeks(all, toTs, 8);
+  const week = groupLastNWeeks(filteredAll, toTs, 8);
   renderBarChart(els.chartWeek, week.labels, week.values);
 
-  const month = groupLastNMonths(all, toTs, 12);
+  const month = groupLastNMonths(filteredAll, toTs, 12);
   renderBarChart(els.chartMonth, month.labels, month.values);
 }
 
@@ -388,9 +410,8 @@ els.periodSelect.addEventListener("change", render);
 els.dayPicker.addEventListener("change", render);
 els.monthPicker.addEventListener("change", render);
 els.yearPicker.addEventListener("change", render);
+els.flowFilter?.addEventListener("change", render);
 els.btnToday.addEventListener("click", setToday);
 
 // boot
 setToday();
-
-

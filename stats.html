@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BOT Worklog – Stats</title>
   <link rel="stylesheet" href="assets/css/main.css" />
-  <link rel="stylesheet" href="assets/css/stats.css">
+  <link rel="stylesheet" href="assets/css/stats.css"/>
 
 </head>
 <body>
@@ -116,6 +116,14 @@
   
         <!-- Main grid (placeholders for charts/sections) -->
         <section class="main">
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                <select class="input" id="flowFilter">
+                  <option value="all">All</option>
+                  <option value="inbound">Inbound</option>
+                  <option value="outbound">Outbound</option>
+                </select>
+              </div>
+              
             <div class="grid2">
               <div class="panel">
                 <div class="panel-head">

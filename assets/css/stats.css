@@ -1,0 +1,111 @@
+/* =========================
+   Stats dashboard styling
+   ========================= */
+
+   .dash{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  
+  /* KPI row */
+  .kpi-row{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:14px;
+  }
+  
+  .kpi-card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:0 8px 22px rgba(15,23,42,.06);
+  }
+  
+  .kpi-title{
+    font-size:13px;
+    color:var(--muted);
+    font-weight:600;
+  }
+  
+  .kpi-value{
+    font-size:40px;
+    font-weight:800;
+    margin-top:6px;
+    letter-spacing:-0.6px;
+  }
+  
+  .dash-body{
+    display:grid;
+    grid-template-columns: 280px 1fr;
+    gap:16px;
+  }
+  
+  /* Sidebar */
+  .side .panel{
+    position:sticky;
+    top:16px;
+  }
+  
+  /* Main grid */
+  .main{
+    display:flex;
+    flex-direction:column;
+  }
+  
+  .grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  
+  /* Mini progress */
+  .mini-card{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px;
+    background:#fff;
+  }
+  
+  .mini-title{
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  
+  .mini-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  
+  .mini-bar{
+    flex:1;
+    height:12px;
+    border-radius:999px;
+    background:rgba(2,6,23,.06);
+    overflow:hidden;
+  }
+  
+  .mini-bar-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),#ffb703);
+    width:0%;
+  }
+  
+  /* Responsive */
+  @media (max-width: 1100px){
+    .kpi-row{
+      grid-template-columns:1fr 1fr;
+    }
+    .dash-body{
+      grid-template-columns:1fr;
+    }
+  }
+  
+  @media (max-width: 520px){
+    .kpi-row{
+      grid-template-columns:1fr;
+    }
+  }
+  

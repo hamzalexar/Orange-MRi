@@ -31,11 +31,31 @@
           <div class="panel-title">Cases</div>
           <div class="muted" id="countLabel"></div>
         </div>
+    
         <div class="panel-tools">
           <input class="input" id="searchInput" placeholder="Search..." />
           <select class="input" id="outcomeFilter"></select>
+    
+          <button class="btn ghost" id="exportJsonBtn" type="button">
+            Export JSON
+          </button>
+    
+          <label class="btn ghost" for="importJsonInput" style="cursor:pointer;">
+            Import JSON
+          </label>
+          <input
+            id="importJsonInput"
+            type="file"
+            accept="application/json"
+            style="display:none;"
+          />
+    
+          <button class="btn ghost" id="exportCsvBtn" type="button">
+            Export CSV
+          </button>
         </div>
       </div>
+    
 
       <div class="split">
         <div class="col">

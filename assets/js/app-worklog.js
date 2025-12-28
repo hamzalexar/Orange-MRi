@@ -4,6 +4,9 @@ import { copyToClipboard } from "./ui/clipboard.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
 import { formatDateTime } from "./ui/datetime.js";
 import { draftRepository } from "./features/cases/draftRepository.js";
+import { initNavbar } from "./ui/navbar.js";
+initNavbar();
+
 
 
 const els = {
@@ -175,6 +178,13 @@ els.interruptBtn.addEventListener("click", () => {
 
   // start nieuwe (interrupt) case
   resetForm();
+
+  const lastDraft = draftRepository.getDraft();
+  if (lastDraft?.form) {
+    loadDraft(lastDraft);
+  }
+  updateResumeButton();
+  
 
   // bewaar ook deze lege start als "current draft"
   draftRepository.saveDraft(getDraftData());

@@ -48,8 +48,17 @@
 
         <label class="field col2">
           <span>Problem Description</span>
-          <textarea class="input" id="problemDescription" rows="2"></textarea>
+          <input class="input" id="problemDescription" list="problemDescriptionList" placeholder="Type or choose..." />
+          <datalist id="problemDescriptionList">
+            <option value="Internet quality"></option>
+            <option value="internet down"></option>
+            <option value="TV issue"></option>
+            <option value="Fiber"></option>
+            <option value="Wi-Fi"></option>
+            <option value="Unsuccesful Repair"></option>
+          </datalist>
         </label>
+        
 
         <label class="field col2">
           <span>(Pre-)Analysis</span>

@@ -120,9 +120,6 @@ function buildWorklogText(data) {
   addSection(lines, "Interaction", data.interaction);
   addSection(lines, "Contact Type", data.contactType);
   addSection(lines, "Outcome", data.outcome);
-  if (data.customerCalled === true) {
-    addSection(lines, "Customer Contacted", "Yes");
-  }
   addSection(lines, "Actions Done", data.actionsDone);
   addSection(lines, "Ring Ring (if available)", data.ringRing);
   addSection(lines, "Technician Date (if booked)", data.technicianDate);

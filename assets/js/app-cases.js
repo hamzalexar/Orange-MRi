@@ -1,146 +1,124 @@
 import { DROPDOWNS } from "./config/dropdowns.js";
-import { qs, fillSelect, escapeHtml } from "./ui/dom.js";
+import { qs } from "./ui/dom.js";
+import { toast } from "./ui/toast.js";
+import { downloadTextFile } from "./ui/download.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
 
+// DOM
 const els = {
-  countLabel: qs("#countLabel"),
-  searchInput: qs("#searchInput"),
-  outcomeFilter: qs("#outcomeFilter"),
+  list: qs("#casesList"),
+  empty: qs("#casesEmpty"),
+  exportJsonBtn: qs("#exportJsonBtn"),
+  exportCsvBtn: qs("#exportCsvBtn"),
+  importFile: qs("#importFile"),
+  importBtn: qs("#importBtn"),
+  clearBtn: qs("#clearBtn"),
   inboundList: qs("#inboundList"),
   outboundList: qs("#outboundList"),
 };
 
 // Filter dropdown init
-fillSelect(els.outcomeFilter, ["All outcomes", ...DROPDOWNS.outcome]);
-els.outcomeFilter.value = "All outcomes";
+function initDropdowns() {
+  if (els.inboundList) els.inboundList.innerHTML = DROPDOWNS.interaction.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
+  if (els.outboundList) els.outboundList.innerHTML = DROPDOWNS.outcome.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
+}
 
-function matchesFilters(c) {
-  const q = els.searchInput.value.trim().toLowerCase();
-  const out = els.outcomeFilter.value;
-
-  const haystack = [
-    c.customerCode,
-    c.problemDescription,
-    c.preAnalysis,
-    c.actionsDone,
-    c.todoRequired,
-    c.outcome,
-    c.interaction,
-    c.customerCalled ? "called" : "",
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  const okQuery = !q || haystack.includes(q);
-  const okOutcome = out === "All outcomes" || c.outcome === out;
-
-  return okQuery && okOutcome;
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function render() {
-  const all = caseRepository.getAll();
+  const cases = caseRepository
+    .getAll()
+    .sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
 
-  const filtered = all
-    .slice()
-    .sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt))
-    .filter(matchesFilters);
+  if (!cases.length) {
+    if (els.empty) els.empty.style.display = "block";
+    if (els.list) els.list.innerHTML = "";
+    return;
+  }
 
-  const inbound = filtered.filter((c) => c.interaction === "Inbound");
-  const outbound = filtered.filter((c) => c.interaction !== "Inbound"); // alles niet-inbound
+  if (els.empty) els.empty.style.display = "none";
 
-  els.countLabel.textContent = `${filtered.length} cases — ${inbound.length} inbound / ${outbound.length} outbound`;
+  if (!els.list) return;
 
-  els.inboundList.innerHTML = inbound.length
-    ? inbound.map(renderCard).join("")
-    : `<div class="muted" style="padding:10px 14px;">No inbound cases</div>`;
+  els.list.innerHTML = cases
+    .map((c) => {
+      const date = new Date(Number(c.createdAt)).toLocaleDateString();
+      const time = new Date(Number(c.createdAt)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  els.outboundList.innerHTML = outbound.length
-    ? outbound.map(renderCard).join("")
-    : `<div class="muted" style="padding:10px 14px;">No outbound cases</div>`;
-}
-
-function renderCard(c) {
-  const title = c.customerCode ? `#${c.customerCode}` : "(No customer code)";
-  const snippet = (c.problemDescription || c.preAnalysis || "—").slice(0, 100);
-  const date = new Date(Number(c.createdAt)).toLocaleDateString();
-  const outcome = c.outcome || "-";
-  const interaction = c.interaction || "-";
-  const called = c.customerCalled === true ? "Called ✓" : "";
-
-  return `
-    <div class="case-card">
-      <div class="case-top">
-        <div>
-          <div class="case-code">${escapeHtml(title)}</div>
-          <div class="case-snippet">${escapeHtml(snippet)}</div>
-          <div class="case-meta">
-            <span>${escapeHtml(date)}</span>
-            <span>•</span>
-            <span>${escapeHtml(outcome)}</span>
-            <span>•</span>
-            <span>${escapeHtml(interaction)}</span>
-            ${called ? `<span>•</span><span><strong>${escapeHtml(called)}</strong></span>` : ""}
+      return `
+      <div class="case-card" data-id="${escapeHtml(c.id)}">
+        <div class="case-card__top">
+          <div class="case-card__meta">
+            <div class="case-card__date">${escapeHtml(date)} • ${escapeHtml(time)}</div>
+            <div class="case-card__code">${escapeHtml(c.customerCode || "")}</div>
           </div>
+          <div class="case-card__pill">${escapeHtml(c.outcome || "")}</div>
         </div>
 
-        <button class="btn danger ghost js-delete" type="button" data-id="${escapeHtml(c.id)}">
-          Delete
-        </button>
+        <div class="case-card__desc">${escapeHtml(c.problemDescription || "")}</div>
+
+        <div class="case-card__bottom">
+          <div class="case-card__tags">
+            <span class="tag">${escapeHtml(c.interaction || "")}</span>
+            <span class="tag">${escapeHtml(c.contactType || "")}</span>
+          </div>
+          <button class="btn btn--danger btn--small js-delete">Delete</button>
+        </div>
       </div>
-    </div>
-  `;
-}
+    `;
+    })
+    .join("");
 
-// Delete handler (event delegation)
-function onListClick(e) {
-  const btn = e.target.closest(".js-delete");
-  if (!btn) return;
+  // delete handlers
+  els.list.querySelectorAll(".case-card .js-delete").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const card = e.target.closest(".case-card");
+      const id = card?.getAttribute("data-id");
+      if (!id) return;
 
-  const id = btn.dataset.id;
-  if (!id) return;
+      if (confirm("Delete this case?")) {
+        caseRepository.remove(id);
+        toast("Case deleted");
+        render();
+      }
+    });
+  });
 
-  const ok = confirm("Delete this case? This cannot be undone.");
-  if (!ok) return;
+  // click card -> go to worklog (if you have this behavior)
+  els.list.querySelectorAll(".case-card").forEach((card) => {
+    card.addEventListener("click", (e) => {
+      // avoid clicking delete triggering navigation
+      if (e.target.closest(".js-delete")) return;
 
-  caseRepository.remove(id);
-  render();
-}
-
-els.inboundList.addEventListener("click", onListClick);
-els.outboundList.addEventListener("click", onListClick);
-
-els.searchInput.addEventListener("input", render);
-els.outcomeFilter.addEventListener("change", render);
-
-/* =========================
-   Export / Import (JSON/CSV)
-   ========================= */
-
-function downloadTextFile(filename, text, mime = "text/plain") {
-  const blob = new Blob([text], { type: mime });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  URL.revokeObjectURL(url);
+      const id = card.getAttribute("data-id");
+      if (!id) return;
+      window.location.href = `index.html?caseId=${encodeURIComponent(id)}`;
+    });
+  });
 }
 
 function toCsvValue(v) {
   const s = String(v ?? "");
-  return `"${s.replaceAll('"', '""')}"`;
+  // escape quotes by doubling them and wrap with quotes if needed
+  if (s.includes('"') || s.includes(",") || s.includes("\n")) {
+    return `"${s.replaceAll('"', '""')}"`;
+  }
+  return s;
 }
 
-function casesToCsv(cases) {
+function toCsv(cases) {
   const headers = [
     "id",
-    "handledAt",
     "createdAt",
     "updatedAt",
+    "handledAt",
     "customerCode",
     "interaction",
     "contactType",
@@ -161,16 +139,30 @@ function casesToCsv(cases) {
   return rows.join("\n");
 }
 
+/**
+ * Convert to a finite number if possible.
+ * Accepts numbers and numeric strings (e.g. "1766991923359").
+ */
+function toFiniteNumber(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 function sanitizeImportedCase(raw) {
   const ts = Date.now();
   const safe = typeof raw === "object" && raw ? raw : {};
 
+  // Accept both numbers and numeric strings from imports. If missing/invalid, fall back safely.
+  const createdAt = toFiniteNumber(safe.createdAt);
+  const updatedAt = toFiniteNumber(safe.updatedAt);
+  const handledAt = toFiniteNumber(safe.handledAt);
+
+  const baseTs = createdAt ?? ts;
+
   return {
-    createdAt: Number.isFinite(safe.createdAt) ? safe.createdAt : ts,
-    updatedAt: Number.isFinite(safe.updatedAt) ? safe.updatedAt : ts,
-    handledAt: Number.isFinite(safe.handledAt)
-      ? safe.handledAt
-      : (Number.isFinite(safe.createdAt) ? safe.createdAt : ts),
+    createdAt: baseTs,
+    updatedAt: updatedAt ?? baseTs,
+    handledAt: handledAt ?? baseTs,
 
     customerCode: safe.customerCode ?? "",
     problemDescription: safe.problemDescription ?? "",
@@ -188,9 +180,7 @@ function sanitizeImportedCase(raw) {
 
 function fingerprintCase(c) {
   const norm = (v) => String(v ?? "").trim().toLowerCase();
-  const t = Number.isFinite(c.handledAt)
-    ? c.handledAt
-    : (Number.isFinite(c.createdAt) ? c.createdAt : 0);
+  const t = toFiniteNumber(c.handledAt) ?? toFiniteNumber(c.createdAt) ?? 0;
 
   return [
     t,
@@ -207,113 +197,162 @@ function fingerprintCase(c) {
 }
 
 // ADD ONLY + DUPLICATE PROOF
-function addOnlyCases(nextCases) {
-  const existing = caseRepository.getAll();
+function mergeCases(existing, imported) {
   const seen = new Set(existing.map(fingerprintCase));
+  const merged = [...existing];
 
   let added = 0;
-  let skipped = 0;
-
-  for (const c of nextCases) {
+  for (const raw of imported) {
+    const c = sanitizeImportedCase(raw);
     const fp = fingerprintCase(c);
-
-    if (seen.has(fp)) {
-      skipped++;
-      continue;
-    }
-
-    const created = caseRepository.create({
-      customerCode: c.customerCode,
-      problemDescription: c.problemDescription,
-      preAnalysis: c.preAnalysis,
-      interaction: c.interaction,
-      contactType: c.contactType,
-      outcome: c.outcome,
-      customerCalled: c.customerCalled,
-      actionsDone: c.actionsDone,
-      ringRing: c.ringRing,
-      technicianDate: c.technicianDate,
-      todoRequired: c.todoRequired,
-    });
-
-    // timestamps correct zetten voor stats
-    caseRepository.update(created.id, {
-      createdAt: c.createdAt,
-      updatedAt: c.updatedAt,
-      handledAt: c.handledAt,
-    });
+    if (seen.has(fp)) continue;
 
     seen.add(fp);
+    merged.push(c);
     added++;
   }
 
-  return { added, skipped };
+  return { merged, added };
 }
 
-const exportJsonBtn = document.querySelector("#exportJsonBtn");
-const importJsonInput = document.querySelector("#importJsonInput");
-const exportCsvBtn = document.querySelector("#exportCsvBtn");
-
-if (!exportJsonBtn || !importJsonInput || !exportCsvBtn) {
-  console.error("Export/Import UI missing. Expected IDs: exportJsonBtn, importJsonInput, exportCsvBtn");
-}
-
-exportJsonBtn?.addEventListener("click", () => {
-  const all = caseRepository.getAll();
-  const payload = { version: 1, exportedAt: Date.now(), cases: all };
-
+function exportJson() {
+  const data = {
+    version: 1,
+    exportedAt: Date.now(),
+    cases: caseRepository.getAll(),
+  };
   downloadTextFile(
     `orange-mri-cases-${new Date().toISOString().slice(0, 10)}.json`,
-    JSON.stringify(payload, null, 2),
+    JSON.stringify(data, null, 2),
     "application/json"
   );
+  toast("Exported JSON");
+}
 
-  alert("JSON exported ✅ (check your downloads)");
-});
-
-exportCsvBtn?.addEventListener("click", () => {
-  const all = caseRepository.getAll();
-  const csv = casesToCsv(all);
-
+function exportCsv() {
+  const csv = toCsv(caseRepository.getAll());
   downloadTextFile(
     `orange-mri-cases-${new Date().toISOString().slice(0, 10)}.csv`,
     csv,
     "text/csv"
   );
+  toast("Exported CSV");
+}
 
-  alert("CSV exported ✅ (check your downloads)");
-});
+async function readFileAsText(file) {
+  return await file.text();
+}
 
-importJsonInput?.addEventListener("change", async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+async function importCasesFromFile(file) {
+  const rawText = await readFileAsText(file);
 
+  // Try JSON first
   try {
-    const text = await file.text();
-    const parsed = JSON.parse(text);
+    const parsed = JSON.parse(rawText);
+    const importedCases = Array.isArray(parsed) ? parsed : parsed.cases;
 
-    const arr = Array.isArray(parsed) ? parsed : parsed?.cases;
-    if (!Array.isArray(arr)) {
-      alert("Invalid JSON: expected an array or { cases: [...] }");
-      return;
+    if (!Array.isArray(importedCases)) throw new Error("Invalid JSON structure");
+
+    const existing = caseRepository.getAll();
+    const { merged, added } = mergeCases(existing, importedCases);
+
+    caseRepository.replaceAll(merged);
+    toast(`Imported ${added} new cases (duplicates skipped)`);
+    render();
+    return;
+  } catch (e) {
+    // continue to CSV fallback
+  }
+
+  // CSV fallback
+  // Expected headers must match exportCsv headers
+  const lines = rawText.split(/\r?\n/).filter(Boolean);
+  if (lines.length < 2) throw new Error("CSV looks empty");
+
+  const headers = lines[0].split(",").map((h) => h.trim());
+  const rows = lines.slice(1);
+
+  const importedCases = rows.map((line) => {
+    const cols = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"' && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+        continue;
+      }
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (ch === "," && !inQuotes) {
+        cols.push(cur);
+        cur = "";
+        continue;
+      }
+      cur += ch;
+    }
+    cols.push(cur);
+
+    const obj = {};
+    headers.forEach((h, idx) => {
+      obj[h] = cols[idx];
+    });
+
+    // Coerce booleans if present
+    if (obj.customerCalled != null) {
+      obj.customerCalled = obj.customerCalled === "1" || obj.customerCalled === "true";
     }
 
-    const sanitized = arr.map(sanitizeImportedCase);
+    return obj;
+  });
 
-    const ok = confirm(`This will ADD cases. Duplicates will be skipped.\n\nContinue?`);
-    if (!ok) return;
+  const existing = caseRepository.getAll();
+  const { merged, added } = mergeCases(existing, importedCases);
+  caseRepository.replaceAll(merged);
+  toast(`Imported ${added} new cases (duplicates skipped)`);
+  render();
+}
 
-    const result = addOnlyCases(sanitized);
+function bindEvents() {
+  if (els.exportJsonBtn) els.exportJsonBtn.addEventListener("click", exportJson);
+  if (els.exportCsvBtn) els.exportCsvBtn.addEventListener("click", exportCsv);
 
-    alert(`Import done ✅ Added ${result.added}, skipped duplicates: ${result.skipped}. Reloading...`);
-    location.reload();
-  } catch (err) {
-    console.error(err);
-    alert("Import failed. Open Console (⌘⌥I) for details.");
-  } finally {
-    e.target.value = "";
+  if (els.importBtn && els.importFile) {
+    els.importBtn.addEventListener("click", async () => {
+      const file = els.importFile.files?.[0];
+      if (!file) {
+        toast("Choose a file first");
+        return;
+      }
+      try {
+        await importCasesFromFile(file);
+      } catch (e) {
+        console.error(e);
+        toast("Import failed (see console)");
+      } finally {
+        els.importFile.value = "";
+      }
+    });
   }
-});
 
-// boot
-render();
+  if (els.clearBtn) {
+    els.clearBtn.addEventListener("click", () => {
+      if (!confirm("This will delete ALL cases. Continue?")) return;
+      caseRepository.replaceAll([]);
+      toast("All cases cleared");
+      render();
+    });
+  }
+}
+
+function init() {
+  initDropdowns();
+  bindEvents();
+  render();
+}
+
+init();

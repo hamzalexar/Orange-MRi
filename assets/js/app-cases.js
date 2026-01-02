@@ -118,31 +118,34 @@ function getFilteredCases() {
 
 function buildCaseCard(c) {
   const ts = Number(c.createdAt) || 0;
-  const date = formatDate(ts);
-  const time = formatTime(ts);
+  const date = new Date(ts).toLocaleDateString();
+  const time = new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   return `
     <div class="case-card" data-id="${escapeHtml(c.id)}" role="button" tabindex="0">
-      <div class="case-card__top">
-        <div class="case-card__meta">
-          <div class="case-card__date">${escapeHtml(date)} • ${escapeHtml(time)}</div>
-          <div class="case-card__code">${escapeHtml(c.customerCode || "")}</div>
+      <div class="case-top">
+        <div>
+          <div class="case-code">${escapeHtml(c.customerCode || "")}</div>
+          <div class="case-meta">
+            <span>${escapeHtml(date)} • ${escapeHtml(time)}</span>
+            <span>${escapeHtml(c.outcome || "")}</span>
+          </div>
         </div>
-        <div class="case-card__pill">${escapeHtml(c.outcome || "")}</div>
       </div>
 
-      <div class="case-card__desc">${escapeHtml(c.problemDescription || "")}</div>
+      <div class="case-snippet">
+        ${escapeHtml(c.problemDescription || "")}
+      </div>
 
-      <div class="case-card__bottom">
-        <div class="case-card__tags">
-          <span class="tag">${escapeHtml(c.interaction || "")}</span>
-          <span class="tag">${escapeHtml(c.contactType || "")}</span>
-        </div>
-        <button class="btn btn--danger btn--small js-delete" type="button">Delete</button>
+      <div class="case-meta">
+        <span>${escapeHtml(c.interaction || "")}</span>
+        <span>${escapeHtml(c.contactType || "")}</span>
+        <span class="btn danger js-delete">Delete</span>
       </div>
     </div>
   `;
 }
+
 
 function render() {
   const filtered = getFilteredCases();

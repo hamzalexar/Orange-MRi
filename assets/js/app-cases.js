@@ -137,11 +137,15 @@ function buildCaseCard(c) {
         ${escapeHtml(c.problemDescription || "")}
       </div>
 
-      <div class="case-meta">
-        <span>${escapeHtml(c.interaction || "")}</span>
-        <span>${escapeHtml(c.contactType || "")}</span>
-        <span class="btn danger js-delete">Delete</span>
-      </div>
+      <div class="case-meta" style="justify-content:space-between; align-items:center;">
+  <div>
+    <span>${escapeHtml(c.interaction || "")}</span>
+    <span>${escapeHtml(c.contactType || "")}</span>
+  </div>
+
+  <span class="btn danger js-delete">Delete</span>
+</div>
+
     </div>
   `;
 }

@@ -62,7 +62,7 @@ function render() {
 function renderCard(c) {
   const title = c.customerCode ? `#${c.customerCode}` : "(No customer code)";
   const snippet = (c.problemDescription || c.preAnalysis || "—").slice(0, 100);
-  const date = new Date(c.createdAt).toLocaleDateString();
+  const date = new Date(Number(c.createdAt)).toLocaleDateString();
   const outcome = c.outcome || "-";
   const interaction = c.interaction || "-";
   const called = c.customerCalled === true ? "Called ✓" : "";

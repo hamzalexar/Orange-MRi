@@ -4,24 +4,30 @@ import { toast } from "./ui/toast.js";
 import { downloadTextFile } from "./ui/download.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
 
-// DOM
-const els = {
-  list: qs("#casesList"),
-  empty: qs("#casesEmpty"),
-  exportJsonBtn: qs("#exportJsonBtn"),
-  exportCsvBtn: qs("#exportCsvBtn"),
-  importFile: qs("#importFile"),
-  importBtn: qs("#importBtn"),
-  clearBtn: qs("#clearBtn"),
-  inboundList: qs("#inboundList"),
-  outboundList: qs("#outboundList"),
-};
+/**
+ * cases.html DOM (current)
+ * - #outboundList (div)
+ * - #inboundList (div)
+ * - #searchInput (input)
+ * - #outcomeFilter (select)
+ * - #countLabel (div)
+ * - #exportJsonBtn (button)
+ * - #exportCsvBtn (button)
+ * - #importJsonInput (file input)
+ */
 
-// Filter dropdown init
-function initDropdowns() {
-  if (els.inboundList) els.inboundList.innerHTML = DROPDOWNS.interaction.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
-  if (els.outboundList) els.outboundList.innerHTML = DROPDOWNS.outcome.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
-}
+const els = {
+  outboundList: qs("#outboundList"),
+  inboundList: qs("#inboundList"),
+
+  searchInput: document.querySelector("#searchInput"),
+  outcomeFilter: document.querySelector("#outcomeFilter"),
+  countLabel: document.querySelector("#countLabel"),
+
+  exportJsonBtn: document.querySelector("#exportJsonBtn"),
+  exportCsvBtn: document.querySelector("#exportCsvBtn"),
+  importJsonInput: document.querySelector("#importJsonInput"),
+};
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -32,81 +38,171 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function render() {
-  const cases = caseRepository
-    .getAll()
-    .sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
+function normalizeText(v) {
+  return String(v ?? "").trim().toLowerCase();
+}
 
-  if (!cases.length) {
-    if (els.empty) els.empty.style.display = "block";
-    if (els.list) els.list.innerHTML = "";
-    return;
+function isOutboundCase(c) {
+  // Robust categorization for your existing data.
+  // If your interaction dropdown uses values like "Outbound", "Inbound", "CMR", ...
+  // this will still work.
+  const interaction = normalizeText(c?.interaction);
+  const contactType = normalizeText(c?.contactType);
+  const outcome = normalizeText(c?.outcome);
+
+  const hay = `${interaction} ${contactType} ${outcome}`;
+
+  // Treat anything mentioning outbound or cmr as outbound
+  if (hay.includes("outbound")) return true;
+  if (hay.includes("cmr")) return true;
+
+  // Otherwise, default to inbound
+  return false;
+}
+
+function formatDate(ts) {
+  const t = Number(ts);
+  if (!Number.isFinite(t)) return "";
+  return new Date(t).toLocaleDateString();
+}
+
+function formatTime(ts) {
+  const t = Number(ts);
+  if (!Number.isFinite(t)) return "";
+  return new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function initOutcomeFilter() {
+  if (!els.outcomeFilter) return;
+
+  const opts = [
+    { value: "", label: "All outcomes" },
+    ...(Array.isArray(DROPDOWNS?.outcome) ? DROPDOWNS.outcome : []),
+  ];
+
+  els.outcomeFilter.innerHTML = opts
+    .map((o) => `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`)
+    .join("");
+}
+
+function getFilteredCases() {
+  const all = caseRepository
+    .getAll()
+    .slice()
+    .sort((a, b) => (Number(b.updatedAt || b.createdAt) || 0) - (Number(a.updatedAt || a.createdAt) || 0));
+
+  const q = normalizeText(els.searchInput?.value);
+  const outcomeFilter = els.outcomeFilter?.value ?? "";
+
+  return all.filter((c) => {
+    if (outcomeFilter && String(c.outcome ?? "") !== outcomeFilter) return false;
+
+    if (!q) return true;
+
+    const hay = [
+      c.customerCode,
+      c.problemDescription,
+      c.preAnalysis,
+      c.actionsDone,
+      c.todoRequired,
+      c.interaction,
+      c.contactType,
+      c.outcome,
+    ]
+      .map(normalizeText)
+      .join(" ");
+
+    return hay.includes(q);
+  });
+}
+
+function buildCaseCard(c) {
+  const ts = Number(c.createdAt) || 0;
+  const date = formatDate(ts);
+  const time = formatTime(ts);
+
+  return `
+    <div class="case-card" data-id="${escapeHtml(c.id)}" role="button" tabindex="0">
+      <div class="case-card__top">
+        <div class="case-card__meta">
+          <div class="case-card__date">${escapeHtml(date)} • ${escapeHtml(time)}</div>
+          <div class="case-card__code">${escapeHtml(c.customerCode || "")}</div>
+        </div>
+        <div class="case-card__pill">${escapeHtml(c.outcome || "")}</div>
+      </div>
+
+      <div class="case-card__desc">${escapeHtml(c.problemDescription || "")}</div>
+
+      <div class="case-card__bottom">
+        <div class="case-card__tags">
+          <span class="tag">${escapeHtml(c.interaction || "")}</span>
+          <span class="tag">${escapeHtml(c.contactType || "")}</span>
+        </div>
+        <button class="btn btn--danger btn--small js-delete" type="button">Delete</button>
+      </div>
+    </div>
+  `;
+}
+
+function render() {
+  const filtered = getFilteredCases();
+
+  const outbound = [];
+  const inbound = [];
+
+  for (const c of filtered) {
+    (isOutboundCase(c) ? outbound : inbound).push(c);
   }
 
-  if (els.empty) els.empty.style.display = "none";
+  els.outboundList.innerHTML = outbound.map(buildCaseCard).join("") || `<div class="muted">No outbound cases</div>`;
+  els.inboundList.innerHTML = inbound.map(buildCaseCard).join("") || `<div class="muted">No inbound cases</div>`;
 
-  if (!els.list) return;
+  if (els.countLabel) {
+    const total = caseRepository.getAll().length;
+    const shown = filtered.length;
+    els.countLabel.textContent = shown === total ? `${total} cases` : `${shown} / ${total} cases`;
+  }
+}
 
-  els.list.innerHTML = cases
-    .map((c) => {
-      const date = new Date(Number(c.createdAt)).toLocaleDateString();
-      const time = new Date(Number(c.createdAt)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+// Event delegation for both lists
+function bindListEvents(container) {
+  container.addEventListener("click", (e) => {
+    const deleteBtn = e.target.closest(".js-delete");
+    const card = e.target.closest(".case-card");
+    if (!card) return;
 
-      return `
-      <div class="case-card" data-id="${escapeHtml(c.id)}">
-        <div class="case-card__top">
-          <div class="case-card__meta">
-            <div class="case-card__date">${escapeHtml(date)} • ${escapeHtml(time)}</div>
-            <div class="case-card__code">${escapeHtml(c.customerCode || "")}</div>
-          </div>
-          <div class="case-card__pill">${escapeHtml(c.outcome || "")}</div>
-        </div>
+    const id = card.getAttribute("data-id");
+    if (!id) return;
 
-        <div class="case-card__desc">${escapeHtml(c.problemDescription || "")}</div>
-
-        <div class="case-card__bottom">
-          <div class="case-card__tags">
-            <span class="tag">${escapeHtml(c.interaction || "")}</span>
-            <span class="tag">${escapeHtml(c.contactType || "")}</span>
-          </div>
-          <button class="btn btn--danger btn--small js-delete">Delete</button>
-        </div>
-      </div>
-    `;
-    })
-    .join("");
-
-  // delete handlers
-  els.list.querySelectorAll(".case-card .js-delete").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const card = e.target.closest(".case-card");
-      const id = card?.getAttribute("data-id");
-      if (!id) return;
-
+    if (deleteBtn) {
+      e.preventDefault();
+      e.stopPropagation();
       if (confirm("Delete this case?")) {
         caseRepository.remove(id);
         toast("Case deleted");
         render();
       }
-    });
+      return;
+    }
+
+    // Navigate to edit/view worklog
+    window.location.href = `index.html?caseId=${encodeURIComponent(id)}`;
   });
 
-  // click card -> go to worklog (if you have this behavior)
-  els.list.querySelectorAll(".case-card").forEach((card) => {
-    card.addEventListener("click", (e) => {
-      // avoid clicking delete triggering navigation
-      if (e.target.closest(".js-delete")) return;
-
-      const id = card.getAttribute("data-id");
-      if (!id) return;
-      window.location.href = `index.html?caseId=${encodeURIComponent(id)}`;
-    });
+  // Enter/Space to open
+  container.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const card = e.target.closest(".case-card");
+    if (!card) return;
+    const id = card.getAttribute("data-id");
+    if (!id) return;
+    e.preventDefault();
+    window.location.href = `index.html?caseId=${encodeURIComponent(id)}`;
   });
 }
 
 function toCsvValue(v) {
   const s = String(v ?? "");
-  // escape quotes by doubling them and wrap with quotes if needed
   if (s.includes('"') || s.includes(",") || s.includes("\n")) {
     return `"${s.replaceAll('"', '""')}"`;
   }
@@ -152,7 +248,7 @@ function sanitizeImportedCase(raw) {
   const ts = Date.now();
   const safe = typeof raw === "object" && raw ? raw : {};
 
-  // Accept both numbers and numeric strings from imports. If missing/invalid, fall back safely.
+  // ✅ Accept both numbers and numeric strings from imports. If missing/invalid, fall back safely.
   const createdAt = toFiniteNumber(safe.createdAt);
   const updatedAt = toFiniteNumber(safe.updatedAt);
   const handledAt = toFiniteNumber(safe.handledAt);
@@ -160,6 +256,7 @@ function sanitizeImportedCase(raw) {
   const baseTs = createdAt ?? ts;
 
   return {
+    id: safe.id ?? crypto.randomUUID?.() ?? String(Math.random()).slice(2),
     createdAt: baseTs,
     updatedAt: updatedAt ?? baseTs,
     handledAt: handledAt ?? baseTs,
@@ -221,6 +318,7 @@ function exportJson() {
     exportedAt: Date.now(),
     cases: caseRepository.getAll(),
   };
+
   downloadTextFile(
     `orange-mri-cases-${new Date().toISOString().slice(0, 10)}.json`,
     JSON.stringify(data, null, 2),
@@ -265,7 +363,6 @@ async function importCasesFromFile(file) {
   }
 
   // CSV fallback
-  // Expected headers must match exportCsv headers
   const lines = rawText.split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) throw new Error("CSV looks empty");
 
@@ -302,7 +399,6 @@ async function importCasesFromFile(file) {
       obj[h] = cols[idx];
     });
 
-    // Coerce booleans if present
     if (obj.customerCalled != null) {
       obj.customerCalled = obj.customerCalled === "1" || obj.customerCalled === "true";
     }
@@ -318,39 +414,38 @@ async function importCasesFromFile(file) {
 }
 
 function bindEvents() {
+  // Filters
+  if (els.searchInput) els.searchInput.addEventListener("input", render);
+  if (els.outcomeFilter) els.outcomeFilter.addEventListener("change", render);
+
+  // Export
   if (els.exportJsonBtn) els.exportJsonBtn.addEventListener("click", exportJson);
   if (els.exportCsvBtn) els.exportCsvBtn.addEventListener("click", exportCsv);
 
-  if (els.importBtn && els.importFile) {
-    els.importBtn.addEventListener("click", async () => {
-      const file = els.importFile.files?.[0];
-      if (!file) {
-        toast("Choose a file first");
-        return;
-      }
+  // Import (auto on file select)
+  if (els.importJsonInput) {
+    els.importJsonInput.addEventListener("change", async () => {
+      const file = els.importJsonInput.files?.[0];
+      if (!file) return;
+
       try {
         await importCasesFromFile(file);
       } catch (e) {
         console.error(e);
         toast("Import failed (see console)");
       } finally {
-        els.importFile.value = "";
+        els.importJsonInput.value = "";
       }
     });
   }
 
-  if (els.clearBtn) {
-    els.clearBtn.addEventListener("click", () => {
-      if (!confirm("This will delete ALL cases. Continue?")) return;
-      caseRepository.replaceAll([]);
-      toast("All cases cleared");
-      render();
-    });
-  }
+  // Lists
+  bindListEvents(els.outboundList);
+  bindListEvents(els.inboundList);
 }
 
 function init() {
-  initDropdowns();
+  initOutcomeFilter();
   bindEvents();
   render();
 }

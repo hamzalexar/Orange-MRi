@@ -13,7 +13,16 @@ export const caseRepository = {
 
   getById(id) {
     const all = this.getAll();
-    return all.find(c => c.id === id) ?? null;
+    return all.find((c) => c.id === id) ?? null;
+  },
+
+  /**
+   * Replace the entire cases collection (used by imports / bulk operations)
+   * @param {Array} cases
+   */
+  replaceAll(cases) {
+    // Always store an array; fallback to empty array
+    writeJson(STORAGE_KEY, Array.isArray(cases) ? cases : []);
   },
 
   create(caseData) {
@@ -24,10 +33,9 @@ export const caseRepository = {
       id: makeId(),
       createdAt: ts,
       updatedAt: ts,
-      handledAt: ts,        // ✅ NIEUW: tijd van “save / aangepakt”
+      handledAt: ts, // ✅ tijd van “save / aangepakt”
       ...caseData,
     };
-    
 
     all.push(newCase);
     writeJson(STORAGE_KEY, all);
@@ -36,27 +44,26 @@ export const caseRepository = {
 
   update(id, patch) {
     const all = this.getAll();
-    const idx = all.findIndex(c => c.id === id);
+    const idx = all.findIndex((c) => c.id === id);
     if (idx === -1) return null;
-  
+
     // ⛔ bescherm handledAt tegen overschrijven
     const { handledAt, ...safePatch } = patch;
-  
+
     const updated = {
       ...all[idx],
       ...safePatch,
       updatedAt: Date.now(),
     };
-  
+
     all[idx] = updated;
     writeJson(STORAGE_KEY, all);
     return updated;
   },
-  
 
   remove(id) {
     const all = this.getAll();
-    const next = all.filter(c => c.id !== id);
+    const next = all.filter((c) => c.id !== id);
     writeJson(STORAGE_KEY, next);
     return next.length !== all.length;
   },

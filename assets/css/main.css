@@ -594,6 +594,93 @@ textarea.input{
   min-height:220px;
 }
 
+/* ===== Cases: nicer table-card rows (override) ===== */
+
+.case-list{
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* one clean row-card */
+.case-card{
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  padding: 12px 14px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.case-card:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+  border-color: rgba(0,0,0,0.10);
+}
+
+/* header line: code + date/outcome */
+.case-top{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* big title/code */
+.case-code{
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  font-size: 15px;
+}
+
+/* make meta look like chips (date / outcome / tags) */
+.case-meta{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* chips */
+.case-meta > span{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(2, 6, 23, 0.03);
+}
+
+/* description line */
+.case-snippet{
+  margin-top: 10px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* delete button look nicer + keep right */
+.js-delete{
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* avoid nested borders look inside col */
+.col{
+  background: var(--panel);
+}
+
+/* make the inside list align nicely */
+.col .case-list{
+  background: #fff;
+}
+
+
 
 
 

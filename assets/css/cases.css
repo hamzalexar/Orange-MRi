@@ -42,6 +42,7 @@
     padding:14px;
   }
   
+  /* Kolommen als box (Optie 2) */
   .cases-page .col{
     border:1px solid var(--border);
     border-radius:12px;
@@ -58,21 +59,27 @@
     background:#fff;
   }
   
-  /* Case list + cards */
+  /* Case list: in box-list stijl */
   .cases-page .case-list{
-    padding:14px;
+    padding:0; /* belangrijk: geen extra padding rond de lijst */
     display:flex;
     flex-direction:column;
-    gap:10px;
   }
   
+  /* Elke case als "row" in de box */
   .cases-page .case-card{
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:12px;
     background:#fff;
+    padding:14px;
+    border:0;
+    border-top:1px solid var(--border);
+    border-radius:0;
   }
   
+  .cases-page .case-card:first-child{
+    border-top:0;
+  }
+  
+  /* Top layout */
   .cases-page .case-top{
     display:flex;
     justify-content:space-between;
@@ -80,36 +87,45 @@
     align-items:flex-start;
   }
   
-  .cases-page .case-code{ font-weight:600; }
+  .cases-page .case-code{
+    font-weight:700;
+    font-size:18px;
+  }
   
+  /* Snippet/description */
   .cases-page .case-snippet{
     color:var(--muted);
-    margin-top:6px;
+    margin-top:8px;
     font-size:13px;
     line-height:1.4;
   }
   
+  /* Meta (1 versie, netjes) */
   .cases-page .case-meta{
     display:flex;
-    gap:8px;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
     margin-top:8px;
     color:var(--muted);
     font-size:12px;
+  }
+  
+  /* Als je een onderste meta-rij gebruikt */
+  .cases-page .case-meta-bottom{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+  }
+  
+  .cases-page .case-meta-bottom .btn{
+    margin-left:auto;
   }
   
   /* Mobile */
   @media (max-width: 900px){
     .cases-page .split{ grid-template-columns:1fr; }
     .cases-page #searchInput{ min-width:0; width:100%; }
-  }
-  .cases-page .case-meta{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    flex-wrap:wrap;
-  }
-  
-  .cases-page .case-meta-bottom{
-    margin-top:10px;
   }
   

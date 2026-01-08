@@ -102,4 +102,14 @@
     .cases-page .split{ grid-template-columns:1fr; }
     .cases-page #searchInput{ min-width:0; width:100%; }
   }
+  .cases-page .case-meta{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  
+  .cases-page .case-meta-bottom{
+    margin-top:10px;
+  }
   

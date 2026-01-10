@@ -147,7 +147,6 @@ function buildCaseCard(c) {
 }
 
 
-
 function render() {
   const filtered = getFilteredCases();
 

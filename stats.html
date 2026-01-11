@@ -4,126 +4,126 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BOT Worklog – Stats</title>
-  <link rel="stylesheet" href="assets/css/main.css" />
-  <link rel="stylesheet" href="assets/css/stats.css"/>
 
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/stats.css" />
 </head>
+
 <body>
-  <header class="topbar">
-  <div class="brand">
-    <span class="dot"></span>
-    <div>
-      <div class="title">BOT Cable MRI</div>
-      <div class="subtitle">Worklog tool </div>
-    </div>
-  </div>
+  <div class="stats-page">
 
-  <nav class="nav">
-    <a href="index.html" class="nav-link" data-page="worklog">Worklog</a>
-    <a href="cases.html" class="nav-link" data-page="cases">Cases</a>
-    <a href="stats.html" class="nav-link" data-page="stats">Stats</a>
-  </nav>
-</header>
-
-
-   
-  </header>
-
-  <main class="container">
-    <section class="dash">
-  
-      <!-- KPI row -->
-      <div class="kpi-row">
-        <div class="kpi-card">
-          <div class="kpi-title">Total cases</div>
-          <div class="kpi-value" id="totalCases">0</div>
-          <div class="muted" id="totalSub">—</div>
-        </div>
-  
-        <div class="kpi-card">
-          <div class="kpi-title">Inbound</div>
-          <div class="kpi-value" id="inboundCases">0</div>
-          <div class="muted" id="inboundSub">—</div>
-        </div>
-  
-        <div class="kpi-card">
-          <div class="kpi-title">Outbound</div>
-          <div class="kpi-value" id="outboundCases">0</div>
-          <div class="muted" id="outboundSub">—</div>
-        </div>
-  
-        <div class="kpi-card">
-          <div class="kpi-title">Customers called</div>
-          <div class="kpi-value" id="calledCustomers">0</div>
-          <div class="muted" id="calledSub">—</div>
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <div>
+          <div class="title">BOT Cable MRI</div>
+          <div class="subtitle">Worklog tool</div>
         </div>
       </div>
-  
-      <!-- Body: sidebar + main -->
-      <div class="dash-body">
-        <!-- Sidebar filters -->
-        <aside class="side">
-          <div class="panel">
-            <div class="panel-head">
-              <div>
-                <div class="panel-title">Filters</div>
-                <div class="muted" id="rangeLabel">—</div>
-              </div>
-            </div>
-  
-            <div class="panel-body">
-              <div class="field">
-                <label class="muted" for="periodSelect">Period</label>
-                <select class="input" id="periodSelect">
-                  <option value="day">Day</option>
-                  <option value="month">Month</option>
-                  <option value="year">Year</option>
-                </select>
-              </div>
-  
-              <div class="field">
-                <label class="muted" for="dayPicker">Day</label>
-                <input class="input" id="dayPicker" type="date" />
-              </div>
-  
-              <div class="field">
-                <label class="muted" for="monthPicker">Month</label>
-                <input class="input" id="monthPicker" type="month" style="display:none;" />
-              </div>
-  
-              <div class="field">
-                <label class="muted" for="yearPicker">Year</label>
-                <select class="input" id="yearPicker" style="display:none;"></select>
-              </div>
-  
-              <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn" id="btnToday" type="button" style="flex:1;">Today</button>
-              </div>
-  
-              <div class="mini-card" style="margin-top:14px;">
-                <div class="mini-title">Outbound call rate</div>
-                <div class="mini-row">
-                  <div class="mini-bar">
-                    <div class="mini-bar-fill" id="callRateBar" style="width:0%"></div>
-                  </div>
-                  <div class="mini-right" id="callRateLabel">0%</div>
-                </div>
-                <div class="muted" id="callRateSub">—</div>
-              </div>
-            </div>
+
+      <nav class="nav">
+        <a href="index.html" class="nav-link" data-page="worklog">Worklog</a>
+        <a href="cases.html" class="nav-link" data-page="cases">Cases</a>
+        <a href="stats.html" class="nav-link active" data-page="stats">Stats</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="dash">
+
+        <!-- KPI row -->
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-title">Total cases</div>
+            <div class="kpi-value" id="totalCases">0</div>
+            <div class="muted" id="totalSub">—</div>
           </div>
-        </aside>
-  
-        <!-- Main grid (placeholders for charts/sections) -->
-        <section class="main">
-            <div style="display:flex; gap:10px; margin-bottom:12px;">
-                <select class="input" id="flowFilter">
-                  <option value="all">All</option>
-                  <option value="inbound">Inbound</option>
-                  <option value="outbound">Outbound</option>
-                </select>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Inbound</div>
+            <div class="kpi-value" id="inboundCases">0</div>
+            <div class="muted" id="inboundSub">—</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Outbound</div>
+            <div class="kpi-value" id="outboundCases">0</div>
+            <div class="muted" id="outboundSub">—</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Customers called</div>
+            <div class="kpi-value" id="calledCustomers">0</div>
+            <div class="muted" id="calledSub">—</div>
+          </div>
+        </div>
+
+        <!-- Body: sidebar + main -->
+        <div class="dash-body">
+
+          <!-- Sidebar filters -->
+          <aside class="side">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Filters</div>
+                  <div class="muted" id="rangeLabel">—</div>
+                </div>
               </div>
-              
+
+              <div class="panel-body">
+                <div class="field">
+                  <label class="muted" for="periodSelect">Period</label>
+                  <select class="input" id="periodSelect">
+                    <option value="day">Day</option>
+                    <option value="month">Month</option>
+                    <option value="year">Year</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label class="muted" for="dayPicker">Day</label>
+                  <input class="input" id="dayPicker" type="date" />
+                </div>
+
+                <div class="field">
+                  <label class="muted" for="monthPicker">Month</label>
+                  <input class="input" id="monthPicker" type="month" style="display:none;" />
+                </div>
+
+                <div class="field">
+                  <label class="muted" for="yearPicker">Year</label>
+                  <select class="input" id="yearPicker" style="display:none;"></select>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                  <button class="btn" id="btnToday" type="button" style="flex:1;">Today</button>
+                </div>
+
+                <div class="mini-card" style="margin-top:14px;">
+                  <div class="mini-title">Outbound call rate</div>
+                  <div class="mini-row">
+                    <div class="mini-bar">
+                      <div class="mini-bar-fill" id="callRateBar" style="width:0%"></div>
+                    </div>
+                    <div class="mini-right" id="callRateLabel">0%</div>
+                  </div>
+                  <div class="muted" id="callRateSub">—</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main grid -->
+          <section class="main">
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+              <select class="input" id="flowFilter">
+                <option value="all">All</option>
+                <option value="inbound">Inbound</option>
+                <option value="outbound">Outbound</option>
+              </select>
+            </div>
+
             <div class="grid2">
               <div class="panel">
                 <div class="panel-head">
@@ -133,7 +133,7 @@
                   <div class="chart" id="chartHour"></div>
                 </div>
               </div>
-          
+
               <div class="panel">
                 <div class="panel-head">
                   <div class="panel-title">Cases per day</div>
@@ -143,7 +143,7 @@
                 </div>
               </div>
             </div>
-          
+
             <div class="grid2" style="margin-top:14px;">
               <div class="panel">
                 <div class="panel-head">
@@ -153,7 +153,7 @@
                   <div class="chart" id="chartWeek"></div>
                 </div>
               </div>
-          
+
               <div class="panel">
                 <div class="panel-head">
                   <div class="panel-title">Cases per month</div>
@@ -164,13 +164,13 @@
               </div>
             </div>
           </section>
-          
-      </div>
-  
-    </section>
-  </main>
-  
 
-  <script type="module" src="/Orange-MRi/assets/js/app-stats.js"></script>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <script type="module" src="./assets/js/app-stats.js"></script>
 </body>
 </html>

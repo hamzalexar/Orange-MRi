@@ -22,11 +22,10 @@
     margin-bottom:14px;
   }
   
-  /* 2-rij layout */
+  /* ✅ Desktop layout: 1 row (Title | Due | Status | Add) */
   .followups-page .qa-grid{
     display:grid;
-    grid-template-columns: 1.6fr 220px 220px 140px;
-    grid-auto-rows: auto;
+    grid-template-columns: minmax(0, 1.6fr) 220px 220px 160px;
     gap:12px;
     align-items:end;
   }
@@ -37,25 +36,29 @@
     gap:6px;
   }
   
-  .followups-page .qa-actions{
-    display:flex;
-    flex-direction:column;
-  }
-  
-  .followups-page .qa-actions .btn{
-    height:38px;
-    border-radius:10px;
-  }
-  
-  /* Details op volle breedte */
+  /* Details spans full width */
   .followups-page .qa-span2{
     grid-column: 1 / -1;
-    align-items: stretch;
   }
   
   .followups-page textarea.input{
     min-height:84px;
     resize:vertical;
+  }
+  
+  /* Add button stays compact on desktop */
+  .followups-page .qa-actions{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+  }
+  
+  .followups-page .qa-actions .btn{
+    height:40px;
+    border-radius:12px;
+    padding:0 16px;
+    width:auto;
+    min-width:120px;
   }
   
   /* Table */
@@ -143,55 +146,29 @@
     font-weight:800;
   }
   
-  /* Responsive */
-  @media (max-width: 1100px){
+  /* ✅ Responsive: stack only under 900px */
+  @media (max-width: 900px){
     .followups-page .qa-grid{
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
     }
+  
     .followups-page .qa-actions{
-      grid-column: 1 / -1;
+      align-items:stretch;
+    }
+  
+    .followups-page .qa-actions .btn{
+      width:100%;
+      min-width:0;
     }
   }
   
+  /* Small screens: tools full width + table scroll */
   @media (max-width: 640px){
     .followups-page .panel-tools > *{ width:100%; }
     .followups-page #searchInput{ min-width:0; }
   
     .followups-page .table-wrap{ overflow:auto; }
     .followups-page .table{ min-width: 760px; }
-  }
-  /* ==== HARD FIX: keep quick-add on one row + stop full-width Add ==== */
-
-.followups-page .qa-grid{
-    display:grid !important;
-    grid-template-columns: minmax(0, 1.6fr) 220px 220px 160px !important;
-    gap:12px !important;
-    align-items:end !important;
-  }
-  
-  /* Force the first 4 fields to stay in the first row */
-  .followups-page .qa-grid > .field:nth-child(1){ grid-column: 1; }
-  .followups-page .qa-grid > .field:nth-child(2){ grid-column: 2; }
-  .followups-page .qa-grid > .field:nth-child(3){ grid-column: 3; }
-  .followups-page .qa-grid > .field:nth-child(4){ grid-column: 4; }
-  
-  /* Details spans full width on row 2 */
-  .followups-page .qa-span2{
-    grid-column: 1 / -1 !important;
-  }
-  
-  /* The Add button must NOT stretch */
-  .followups-page .qa-actions .btn{
-    width:auto !important;
-    min-width: 120px;
-    height: 40px;
-    border-radius: 12px;
-    padding: 0 16px;
-  }
-  
-  /* If base.css forces buttons to 100% in fields, override that */
-  .followups-page .qa-actions{
-    align-items:flex-end;
   }
   
   

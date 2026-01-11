@@ -1,0 +1,166 @@
+/* =========================
+   STATS PAGE ONLY
+   (alles scoped op .stats-page)
+   ========================= */
+
+   .stats-page .dash{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  
+  /* KPI row */
+  .stats-page .kpi-row{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:14px;
+  }
+  
+  .stats-page .kpi-card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:0 8px 22px rgba(15,23,42,.06);
+  }
+  
+  .stats-page .kpi-title{
+    font-size:13px;
+    color:var(--muted);
+    font-weight:600;
+  }
+  
+  .stats-page .kpi-value{
+    font-size:40px;
+    font-weight:800;
+    margin-top:6px;
+    letter-spacing:-0.6px;
+  }
+  
+  /* Layout: sidebar + main */
+  .stats-page .dash-body{
+    display:grid;
+    grid-template-columns: 280px 1fr;
+    gap:16px;
+  }
+  
+  /* Sidebar */
+  .stats-page .side .panel{
+    position:sticky;
+    top:16px;
+  }
+  
+  /* Main */
+  .stats-page .main{
+    display:flex;
+    flex-direction:column;
+  }
+  
+  .stats-page .grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  
+  /* Mini progress */
+  .stats-page .mini-card{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px;
+    background:#fff;
+  }
+  
+  .stats-page .mini-title{
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  
+  .stats-page .mini-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  
+  .stats-page .mini-bar{
+    flex:1;
+    height:12px;
+    border-radius:999px;
+    background:rgba(2,6,23,.06);
+    overflow:hidden;
+  }
+  
+  .stats-page .mini-bar-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),rgba(255,255,255,0.35));
+    width:0%;
+  }
+  
+  /* =========================
+     Modern polish (add-on)
+     ========================= */
+  
+  /* zachtere borders + premium shadow */
+  .stats-page .kpi-card,
+  .stats-page .side .panel,
+  .stats-page .main .panel,
+  .stats-page .mini-card{
+    border-color: rgba(0,0,0,0.06);
+    box-shadow: 0 10px 28px rgba(15,23,42,0.06);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  
+  .stats-page .kpi-card:hover,
+  .stats-page .main .panel:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 14px 36px rgba(15,23,42,0.10);
+  }
+  
+  /* dashboard achtergrond zoals je voorbeeld */
+  .stats-page .dash{
+    background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+    border-radius: 18px;
+    padding: 2px;
+  }
+  
+  /* sidebar card iets “meer UI” */
+  .stats-page .side .panel{
+    background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+  }
+  
+  /* input/buttons iets strakker */
+  .stats-page .side .input,
+  .stats-page .side .btn{
+    height: 36px;
+    border-radius: 10px;
+  }
+  
+  /* chip/labels netter */
+  .stats-page .kpi-title{
+    color: rgba(2,6,23,0.60);
+  }
+  
+  /* =========================
+     Responsive
+     ========================= */
+  
+  @media (max-width: 1100px){
+    .stats-page .kpi-row{
+      grid-template-columns:1fr 1fr;
+    }
+    .stats-page .dash-body{
+      grid-template-columns:1fr;
+    }
+  }
+  
+  @media (max-width: 640px){
+    .stats-page .grid2{
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 520px){
+    .stats-page .kpi-row{
+      grid-template-columns:1fr;
+    }
+  }
+  

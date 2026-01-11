@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BOT Worklog – Follow-ups</title>
+
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/followups.css" />
+</head>
+
+<body>
+  <div class="followups-page">
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <div>
+          <div class="title">BOT Cable MRI</div>
+          <div class="subtitle">Worklog tool</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="index.html" class="nav-link" data-page="worklog">Worklog</a>
+        <a href="cases.html" class="nav-link" data-page="cases">Cases</a>
+        <a href="stats.html" class="nav-link" data-page="stats">Stats</a>
+        <a href="followups.html" class="nav-link active" data-page="followups">Follow-ups</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Follow-ups</div>
+            <div class="muted" id="summaryLine">—</div>
+          </div>
+
+          <div class="panel-tools">
+            <input class="input" id="searchInput" placeholder="Search…" />
+            <select class="input" id="statusFilter">
+              <option value="all">All</option>
+              <option value="todo">To do</option>
+              <option value="tbc">To be checked</option>
+              <option value="done">Done</option>
+            </select>
+
+            <select class="input" id="sortSelect">
+              <option value="dueAsc">Due date ↑</option>
+              <option value="dueDesc">Due date ↓</option>
+              <option value="createdDesc">Newest</option>
+              <option value="createdAsc">Oldest</option>
+            </select>
+
+            <button class="btn" id="btnExportJson" type="button">Export JSON</button>
+            <label class="btn" for="importJsonInput" style="cursor:pointer;">Import JSON</label>
+            <input id="importJsonInput" type="file" accept="application/json" style="display:none;" />
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <!-- Quick add -->
+          <div class="quick-add">
+            <div class="qa-grid">
+              <div class="field">
+                <span class="muted">Title</span>
+                <input class="input" id="titleInput" placeholder="e.g. Call customer back about modem swap" />
+              </div>
+
+              <div class="field">
+                <span class="muted">Due date</span>
+                <input class="input" id="dueInput" type="date" />
+              </div>
+
+              <div class="field">
+                <span class="muted">Status</span>
+                <select class="input" id="statusInput">
+                  <option value="todo">To do</option>
+                  <option value="tbc">To be checked</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+
+              <div class="field qa-actions">
+                <span class="muted">&nbsp;</span>
+                <button class="btn primary" id="btnAdd" type="button">Add</button>
+              </div>
+
+              <div class="field qa-span2">
+                <span class="muted">Details (optional)</span>
+                <textarea class="input" id="detailsInput" placeholder="Extra notes…"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="table-wrap">
+            <table class="table" aria-label="Follow-ups table">
+              <thead>
+                <tr>
+                  <th style="width:140px;">Due</th>
+                  <th style="width:160px;">Status</th>
+                  <th>Title</th>
+                  <th style="width:140px; text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <div class="muted" id="emptyState" style="display:none; margin-top:12px;">
+            No follow-ups yet. Add one above 👆
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./assets/js/app-followups.js"></script>
+</body>
+</html>

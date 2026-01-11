@@ -195,4 +195,25 @@
   @media (max-width: 520px){
     .stats-page .kpi-row{ grid-template-columns:1fr; }
   }
+  /* =========================
+   STATS – spacing fix
+   ========================= */
+
+/* Geef de stats pagina extra gutter */
+.stats-page main.container{
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  
+  /* Filters panel meer ademruimte */
+  .stats-page .side .panel{
+    padding: 18px 20px;
+  }
+  
+  /* Titel en inhoud niet tegen rand */
+  .stats-page .panel-head,
+  .stats-page .panel-body{
+    padding-left: 0;
+    padding-right: 0;
+  }
   

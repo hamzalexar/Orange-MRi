@@ -251,15 +251,22 @@ function sanitizeImportedCase(raw) {
   const ts = Date.now();
   const safe = typeof raw === "object" && raw ? raw : {};
 
-  // ✅ Accept both numbers and numeric strings from imports. If missing/invalid, fall back safely.
   const createdAt = toFiniteNumber(safe.createdAt);
   const updatedAt = toFiniteNumber(safe.updatedAt);
   const handledAt = toFiniteNumber(safe.handledAt);
 
-  const baseTs = createdAt ?? ts;
+  // ✅ createdAt is heilig; als missing → pak handledAt, anders updatedAt, anders import-moment
+  const baseTs = createdAt ?? handledAt ?? updatedAt ?? ts;
+
+  const customerCalled =
+    safe.customerCalled === true ||
+    safe.customerCalled === "true" ||
+    safe.customerCalled === 1 ||
+    safe.customerCalled === "1";
 
   return {
     id: safe.id ?? crypto.randomUUID?.() ?? String(Math.random()).slice(2),
+
     createdAt: baseTs,
     updatedAt: updatedAt ?? baseTs,
     handledAt: handledAt ?? baseTs,
@@ -270,13 +277,15 @@ function sanitizeImportedCase(raw) {
     interaction: safe.interaction ?? "",
     contactType: safe.contactType ?? "",
     outcome: safe.outcome ?? "",
-    customerCalled: Boolean(safe.customerCalled),
+    customerCalled,
+
     actionsDone: safe.actionsDone ?? "",
     ringRing: safe.ringRing ?? "",
     technicianDate: safe.technicianDate ?? "",
     todoRequired: safe.todoRequired ?? "",
   };
 }
+
 
 function fingerprintCase(c) {
   const norm = (v) => String(v ?? "").trim().toLowerCase();

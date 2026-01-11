@@ -89,12 +89,20 @@ function getFilteredSorted(items) {
 
   const dueVal = (it) => (it.dueDate ? new Date(it.dueDate + "T00:00:00").getTime() : Number.POSITIVE_INFINITY);
 
-  out.sort((a, b) => {
-    if (sort === "dueAsc") return dueVal(a) - dueVal(b);
-    if (sort === "dueDesc") return dueVal(b) - dueVal(a);
-    if (sort === "createdAsc") return a.createdAt - b.createdAt;
-    return b.createdAt - a.createdAt; // createdDesc
-  });
+  const statusWeight = (it) => (it.status === "done" ? 1 : 0);
+
+out.sort((a, b) => {
+  // ✅ Always push "done" to bottom
+  const w = statusWeight(a) - statusWeight(b);
+  if (w !== 0) return w;
+
+  // Normal sorting for the rest
+  if (sort === "dueAsc") return dueVal(a) - dueVal(b);
+  if (sort === "dueDesc") return dueVal(b) - dueVal(a);
+  if (sort === "createdAsc") return a.createdAt - b.createdAt;
+  return b.createdAt - a.createdAt; // createdDesc
+});
+
 
   return out;
 }
@@ -124,7 +132,7 @@ function rowHtml(it) {
       </td>
       <td style="text-align:right;">
         <div class="row-actions">
-          <button class="btn small" data-action="cycle" type="button">Next</button>
+          <button class="btn small" data-action="cycle" type="button">Change status</button>
           <button class="btn small" data-action="edit" type="button">Edit</button>
           <button class="btn small danger" data-action="delete" type="button">Delete</button>
         </div>

@@ -170,5 +170,20 @@
     .followups-page .table-wrap{ overflow:auto; }
     .followups-page .table{ min-width: 760px; }
   }
+  /* Give follow-ups page more breathing room */
+.followups-page .panel{
+    padding: 18px 20px;
+  }
+  
+  /* Table wrapper iets los van de rand */
+  .followups-page .table-wrap{
+    margin-top: 14px;
+  }
+  
+  /* Extra veiligheid: main content niet tegen viewport */
+  .followups-page .container{
+    padding-left: 20px;
+    padding-right: 20px;
+  }
   
   

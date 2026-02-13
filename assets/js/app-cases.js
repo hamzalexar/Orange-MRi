@@ -95,10 +95,21 @@ if (!outboundListEl || !inboundListEl) {
 
   function buildCaseCard(c) {
     const ts = Number(c.createdAt) || 0;
-    const date = ts ? new Date(ts).toLocaleDateString() : "";
-    const time = ts
-      ? new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      : "";
+    const date = ts
+  ? new Date(ts).toLocaleDateString("nl-BE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  : "";
+
+const time = ts
+  ? new Date(ts).toLocaleTimeString("nl-BE", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+  : "";
 
     return `
       <div class="case-card" data-id="${escapeHtml(c.id)}" role="button" tabindex="0">

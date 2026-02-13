@@ -5,10 +5,7 @@ import { supabase } from "../../config.js";
 /**
  * ✅ Vul dit in met jouw gegevens
  */
-const SUPABASE_URL = "https://wfkqzljiafgstdyiupbi.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_ZNp4awzW-hRIiNMwqg_Ybg_sCb1hTlZ";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function makeId() {
   return `${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;

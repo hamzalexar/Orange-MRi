@@ -1,6 +1,6 @@
 import { readJson, writeJson } from "../../core/storage.js";
 import { supabase } from "../../config.js";
-
+const STORAGE_KEY = "bot_worklog_cases_v1";
 
 /**
  * ✅ Vul dit in met jouw gegevens

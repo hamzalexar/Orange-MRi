@@ -1,3 +1,8 @@
+
+import { followupRepository } from "./features/followups/followupRepository.js";
+
+await followupRepository.init();
+
 const STORAGE_KEY = "bot_worklog_followups_v1";
 
 const els = {

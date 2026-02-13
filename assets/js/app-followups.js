@@ -1,4 +1,4 @@
-import { followupRepository } from "./features/followupRepository.js";
+import { followupRepository } from "./features/followups/followupRepository.js";
 
 // ✅ Guard: als followups.html DOM er niet is, stop (voorkomt crashes als script ergens anders geladen wordt)
 const rowsEl = document.getElementById("rows");

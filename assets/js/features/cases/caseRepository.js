@@ -1,79 +1,60 @@
 import { readJson, writeJson } from "../../core/storage.js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../../config.js";
+import { supabase } from "../../config.js";
 
-const STORAGE_KEY = "bot_worklog_cases_v1";
-const SYNC_META_KEY = "bot_worklog_sync_meta_v1"; // kleine meta voor debugging
+
+/**
+ * ✅ Vul dit in met jouw gegevens
+ */
+const SUPABASE_URL = "https://wfkqzljiafgstdyiupbi.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_ZNp4awzW-hRIiNMwqg_Ybg_sCb1hTlZ";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function makeId() {
   return `${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
 }
 
-// ---------- Supabase REST helpers ----------
-async function sb(path, { method = "GET", body, prefer } = {}) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method,
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      "Content-Type": "application/json",
-      ...(prefer ? { Prefer: prefer } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`Supabase ${res.status}: ${txt}`);
-  }
-
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
-}
-
+// ------------------ Remote helpers ------------------
 async function remoteList() {
-  // enkel payload ophalen (payload bevat jouw volledige case object)
-  const rows = await sb("worklog_cases?select=payload&order=updated_at.desc");
-  return (rows || []).map((r) => r.payload);
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("payload, updated_at")
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map((r) => r.payload);
 }
 
 async function remoteUpsertMany(cases) {
-  if (!cases.length) return;
+  if (!cases?.length) return;
 
   const nowIso = new Date().toISOString();
-
-  // Bulk upsert via PostgREST
   const rows = cases.map((c) => ({
     id: c.id,
     payload: c,
     updated_at: nowIso,
   }));
 
-  await sb("worklog_cases?on_conflict=id", {
-    method: "POST",
-    body: rows,
-    // merge duplicates = upsert
-    prefer: "resolution=merge-duplicates,return=minimal",
-  });
+  const { error } = await supabase.from(TABLE).upsert(rows, { onConflict: "id" });
+  if (error) throw error;
 }
 
 async function remoteDelete(id) {
-  await sb(`worklog_cases?id=eq.${encodeURIComponent(id)}`, {
-    method: "DELETE",
-    prefer: "return=minimal",
-  });
+  const { error } = await supabase.from(TABLE).delete().eq("id", id);
+  if (error) throw error;
 }
 
-// ---------- Merge helper ----------
+// ------------------ Merge helper ------------------
 function mergeLocalRemote(localCases, remoteCases) {
   const map = new Map();
 
   // start met remote
-  for (const c of remoteCases) {
+  for (const c of remoteCases || []) {
     if (c?.id) map.set(c.id, c);
   }
 
-  // merge local (neem nieuwste updatedAt)
-  for (const c of localCases) {
+  // merge local: neem de nieuwste updatedAt
+  for (const c of localCases || []) {
     if (!c?.id) continue;
 
     const existing = map.get(c.id);
@@ -84,21 +65,16 @@ function mergeLocalRemote(localCases, remoteCases) {
 
     const a = Number(existing.updatedAt || 0);
     const b = Number(c.updatedAt || 0);
-
-    // kies de “nieuwste”
     map.set(c.id, b >= a ? c : existing);
   }
 
   return Array.from(map.values());
 }
 
-// ---------- Repository ----------
 export const caseRepository = {
   /**
-   * Call this ONCE at app startup:
-   * - pull from Supabase
-   * - merge with local
-   * - push merged back to Supabase (so beide devices gelijk lopen)
+   * ✅ Call this ONCE at startup (per pagina):
+   * await caseRepository.init();
    */
   async init() {
     try {
@@ -106,8 +82,11 @@ export const caseRepository = {
       const remote = await remoteList();
 
       const merged = mergeLocalRemote(local, remote);
+
+      // schrijf lokaal zodat je UI meteen de juiste lijst heeft
       writeJson(STORAGE_KEY, merged);
 
+      // push merged terug (zodat devices gelijk lopen)
       await remoteUpsertMany(merged);
 
       writeJson(SYNC_META_KEY, {
@@ -117,9 +96,12 @@ export const caseRepository = {
         mergedCount: merged.length,
       });
     } catch (e) {
-      // Als Supabase faalt: app blijft werken op localStorage
-      writeJson(SYNC_META_KEY, { lastInitErrorAt: Date.now(), message: String(e?.message || e) });
-      console.warn("Supabase sync init failed, falling back to localStorage:", e);
+      // fallback: app blijft werken via localStorage
+      writeJson(SYNC_META_KEY, {
+        lastInitErrorAt: Date.now(),
+        message: String(e?.message || e),
+      });
+      console.warn("Supabase init sync failed → localStorage fallback:", e);
     }
   },
 
@@ -136,8 +118,10 @@ export const caseRepository = {
     const safe = Array.isArray(cases) ? cases : [];
     writeJson(STORAGE_KEY, safe);
 
-    // fire-and-forget push
-    remoteUpsertMany(safe).catch((e) => console.warn("Supabase replaceAll push failed:", e));
+    // fire-and-forget
+    remoteUpsertMany(safe).catch((e) =>
+      console.warn("Supabase replaceAll push failed:", e)
+    );
   },
 
   create(caseData) {
@@ -155,8 +139,10 @@ export const caseRepository = {
     all.push(newCase);
     writeJson(STORAGE_KEY, all);
 
-    // fire-and-forget push
-    remoteUpsertMany([newCase]).catch((e) => console.warn("Supabase create push failed:", e));
+    // fire-and-forget
+    remoteUpsertMany([newCase]).catch((e) =>
+      console.warn("Supabase create push failed:", e)
+    );
 
     return newCase;
   },
@@ -178,8 +164,10 @@ export const caseRepository = {
     all[idx] = updated;
     writeJson(STORAGE_KEY, all);
 
-    // fire-and-forget push
-    remoteUpsertMany([updated]).catch((e) => console.warn("Supabase update push failed:", e));
+    // fire-and-forget
+    remoteUpsertMany([updated]).catch((e) =>
+      console.warn("Supabase update push failed:", e)
+    );
 
     return updated;
   },
@@ -189,14 +177,16 @@ export const caseRepository = {
     const next = all.filter((c) => c.id !== id);
     writeJson(STORAGE_KEY, next);
 
-    // fire-and-forget delete
-    remoteDelete(id).catch((e) => console.warn("Supabase delete failed:", e));
+    // fire-and-forget
+    remoteDelete(id).catch((e) =>
+      console.warn("Supabase delete failed:", e)
+    );
 
     return next.length !== all.length;
   },
 
   clearAll() {
     writeJson(STORAGE_KEY, []);
-    // (optioneel later: remote “truncate” doen via RPC/SQL, maar voor nu laten we dit)
+    // (remote clear doen we later eventueel via RPC/SQL)
   },
 };

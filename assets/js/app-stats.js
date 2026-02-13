@@ -1,5 +1,6 @@
 import { qs } from "./ui/dom.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
+await caseRepository.init();
 
 console.log("app-stats.js loaded ✅");
 

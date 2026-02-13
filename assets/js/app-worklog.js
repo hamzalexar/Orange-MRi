@@ -6,6 +6,7 @@ import { formatDateTime } from "./ui/datetime.js";
 import { draftRepository } from "./features/cases/draftRepository.js";
 import { initNavbar } from "./ui/navbar.js";
 initNavbar();
+await caseRepository.init();
 
 
 

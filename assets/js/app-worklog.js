@@ -45,7 +45,7 @@ function getFormData() {
   return {
     customerCode: els.customerCode.value.trim(),
     task: els.task.value.trim(),
-    problemDescription: els.task.value.trim(),
+    problemDescription: els.problemDescription.value.trim(),
     preAnalysis: els.preAnalysis.value.trim(),
     interaction: els.interaction.value,
     contactType: els.contactType.value,

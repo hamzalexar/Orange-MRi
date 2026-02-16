@@ -17,7 +17,7 @@ const els = {
   copyBtn: qs("#copyBtn"),
 
   customerCode: qs("#customerCode"),
-  task:qs("#task")
+  task:qs("#task"),
   problemDescription: qs("#problemDescription"),
   preAnalysis: qs("#preAnalysis"),
   interaction: qs("#interaction"),

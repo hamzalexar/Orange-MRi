@@ -78,6 +78,7 @@ if (!outboundListEl || !inboundListEl) {
 
       const hay = [
         c.customerCode,
+        c.task,
         c.problemDescription,
         c.preAnalysis,
         c.actionsDone,
@@ -124,8 +125,10 @@ const time = ts
         </div>
 
         <div class="case-snippet">
-          ${escapeHtml(c.problemDescription || "")}
-        </div>
+ ${escapeHtml(c.task || "")}
+ ${c.task && c.problemDescription ? "<br/>" : ""}
+ ${escapeHtml(c.problemDescription || "")}
+</div>
 
         <div class="case-meta case-meta-bottom">
           <span>${escapeHtml(c.interaction || "")}</span>

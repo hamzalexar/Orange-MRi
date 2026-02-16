@@ -225,6 +225,7 @@ const time = ts
       "updatedAt",
       "handledAt",
       "customerCode",
+      "task",
       "interaction",
       "contactType",
       "outcome",

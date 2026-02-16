@@ -17,6 +17,7 @@ const els = {
   copyBtn: qs("#copyBtn"),
 
   customerCode: qs("#customerCode"),
+  task:qs("#task")
   problemDescription: qs("#problemDescription"),
   preAnalysis: qs("#preAnalysis"),
   interaction: qs("#interaction"),
@@ -43,7 +44,8 @@ fillSelect(els.outcome, DROPDOWNS.outcome);
 function getFormData() {
   return {
     customerCode: els.customerCode.value.trim(),
-    problemDescription: els.problemDescription.value.trim(),
+    task: els.task.value.trim(),
+    problemDescription: els.task.value.trim(),
     preAnalysis: els.preAnalysis.value.trim(),
     interaction: els.interaction.value,
     contactType: els.contactType.value,
@@ -59,6 +61,7 @@ function getFormData() {
 
 function setFormData(data) {
   els.customerCode.value = data.customerCode ?? "";
+  els.task.value = data.task ?? "";
   els.problemDescription.value = data.problemDescription ?? "";
   els.preAnalysis.value = data.preAnalysis ?? "";
   els.interaction.value = data.interaction ?? DROPDOWNS.interaction[0];
@@ -113,6 +116,7 @@ function buildWorklogText(data) {
   const lines = [];
 
   addSection(lines, "Customer Code", data.customerCode);
+  addSection(lines, "Task", data.task);
   addSection(lines, "Problem Description", data.problemDescription);
   addSection(lines, "(Pre-)Analysis", data.preAnalysis);
 

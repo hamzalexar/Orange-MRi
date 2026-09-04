@@ -13,6 +13,26 @@ function makeId() {
   return `${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
 }
 
+// Enkel deze velden gaan naar Supabase (puur voor de Stats-pagina).
+// De volledige worklog (problem description, pre-analysis, actions done,
+// task, ring ring, technician date, to-do, contact type, outcome) blijft
+// uitsluitend lokaal per toestel staan.
+const REMOTE_FIELDS = [
+  "id",
+  "customerCode",
+  "interaction",
+  "customerCalled",
+  "createdAt",
+  "updatedAt",
+  "handledAt",
+];
+
+function toRemotePayload(c) {
+  const stripped = {};
+  for (const key of REMOTE_FIELDS) stripped[key] = c[key];
+  return stripped;
+}
+
 // ------------------ Remote helpers ------------------
 async function remoteList() {
   const { data, error } = await supabase
@@ -30,7 +50,7 @@ async function remoteUpsertMany(cases) {
   const nowIso = new Date().toISOString();
   const rows = cases.map((c) => ({
     id: c.id,
-    payload: c,
+    payload: toRemotePayload(c),
     updated_at: nowIso,
   }));
 

@@ -91,11 +91,17 @@
         
 
         <label class="field checkbox-field col2">
-          <span>&nbsp;</span>
-          <label class="checkbox">
-            <input type="checkbox" id="majorOutage" />
-            <span>Major outage</span>
-          </label>
+          <span>Major outage</span>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="majorOutage" id="majorOutageYes" value="yes" />
+              <span>Yes</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="majorOutage" id="majorOutageNo" value="no" />
+              <span>No</span>
+            </label>
+          </div>
         </label>
 
         <label class="field col2">

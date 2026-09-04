@@ -85,6 +85,19 @@
     align-items:center;
     gap:8px;
   }
+
+  /* Yes/No radio group (Major outage) */
+  .worklog-page .radio-group{
+    display:flex;
+    gap:16px;
+  }
+
+  .worklog-page .radio-option{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+  }
   
   /* Hint box */
   .worklog-page .hint{

@@ -28,7 +28,8 @@ const els = {
   technicianDate: qs("#technicianDate"),
   todoRequired: qs("#todoRequired"),
   customerCalled: qs("#customerCalled"),
-  majorOutage: qs("#majorOutage"),
+  majorOutageYes: qs("#majorOutageYes"),
+  majorOutageNo: qs("#majorOutageNo"),
   interruptBtn: qs("#interruptBtn"),
 resumeBtn: qs("#resumeBtn"),
 
@@ -52,7 +53,7 @@ function getFormData() {
     contactType: els.contactType.value,
     outcome: els.outcome.value,
     customerCalled: els.customerCalled.checked, // ✅ NIEUW
-    majorOutage: els.majorOutage.checked,
+    majorOutage: els.majorOutageYes.checked,
     actionsDone: els.actionsDone.value.trim(),
     ringRing: els.ringRing.value.trim(),
     technicianDate: els.technicianDate.value.trim(),
@@ -74,7 +75,9 @@ function setFormData(data) {
   els.technicianDate.value = data.technicianDate ?? "";
   els.todoRequired.value = data.todoRequired ?? "";
   els.customerCalled.checked = Boolean(data.customerCalled);
-  els.majorOutage.checked = Boolean(data.majorOutage);
+  // Ongekozen (undefined) laat beide radio's leeg i.p.v. te forceren naar "No".
+  els.majorOutageYes.checked = data.majorOutage === true;
+  els.majorOutageNo.checked = data.majorOutage === false;
 }
 
 const MAJOR_OUTAGE_YES = "There is a Major outage";
@@ -82,9 +85,9 @@ const MAJOR_OUTAGE_NO = "There is no major outage";
 const MAJOR_OUTAGE_LINE_RE = /^There is( a)?( no)? Major outage$/i;
 
 // Houdt enkel de eerste regel van (Pre-)Analysis gesynchroniseerd met de
-// checkbox; de rest van wat je daar zelf typt blijft onaangeroerd.
+// Yes/No-keuze; de rest van wat je daar zelf typt blijft onaangeroerd.
 function syncMajorOutageLine() {
-  const line = els.majorOutage.checked ? MAJOR_OUTAGE_YES : MAJOR_OUTAGE_NO;
+  const line = els.majorOutageYes.checked ? MAJOR_OUTAGE_YES : MAJOR_OUTAGE_NO;
   const lines = els.preAnalysis.value.split("\n");
 
   if (lines.length && MAJOR_OUTAGE_LINE_RE.test(lines[0].trim())) {
@@ -125,7 +128,8 @@ function resetForm() {
   selectedId = null;
   els.editLabel.textContent = "Create a new case";
   setFormData({});
-  syncMajorOutageLine();
+  // Geen syncMajorOutageLine() hier: (Pre-)Analysis blijft leeg tot je
+  // bewust Yes/No kiest voor Major outage.
 }
 
 function addSection(lines, label, value) {
@@ -165,7 +169,8 @@ function buildWorklogText(data) {
 els.resetBtn.addEventListener("click", resetForm);
 
 // Autosave gebeurt al via de form-brede "change"-listener verderop.
-els.majorOutage.addEventListener("change", syncMajorOutageLine);
+els.majorOutageYes.addEventListener("change", syncMajorOutageLine);
+els.majorOutageNo.addEventListener("change", syncMajorOutageLine);
 
 els.saveBtn.addEventListener("click", () => {
   const data = getFormData();

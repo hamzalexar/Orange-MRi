@@ -208,7 +208,16 @@ els.resumeBtn.addEventListener("click", () => {
 
 
 
-resetForm();
+const caseIdFromUrl = new URLSearchParams(window.location.search).get("caseId");
+const caseFromUrl = caseIdFromUrl ? caseRepository.getById(caseIdFromUrl) : null;
+
+if (caseFromUrl) {
+  selectedId = caseFromUrl.id;
+  setFormData(caseFromUrl);
+  els.editLabel.textContent = `Editing: ${caseFromUrl.customerCode || caseFromUrl.id}`;
+} else {
+  resetForm();
+}
 
 let autosaveTimer = null;
 

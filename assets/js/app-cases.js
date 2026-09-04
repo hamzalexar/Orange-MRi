@@ -142,9 +142,10 @@ const time = ts
   function initOutcomeFilter() {
     if (!els.outcomeFilter) return;
 
+    const values = Array.isArray(DROPDOWNS?.outcome) ? DROPDOWNS.outcome : [];
     const opts = [
       { value: "", label: "All outcomes" },
-      ...(Array.isArray(DROPDOWNS?.outcome) ? DROPDOWNS.outcome : []),
+      ...values.filter((v) => v !== "").map((v) => ({ value: v, label: v })),
     ];
 
     els.outcomeFilter.innerHTML = opts

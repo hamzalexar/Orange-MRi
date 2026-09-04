@@ -409,6 +409,11 @@ function render() {
   const inbound = items.filter(isInbound);
   const outbound = items.filter(isOutbound);
   const outboundCalled = outbound.filter((c) => c.customerCalled === true);
+  // "Customers called" telt over Inbound + Outbound samen — of je nu een
+  // outbound of inbound case aanvinkt als "Customer contacted", het moet
+  // hier altijd meetellen. De outbound call rate hieronder blijft wel
+  // specifiek outbound, want dat is een outbound-metric.
+  const allCalled = items.filter((c) => c.customerCalled === true);
 
   els.rangeLabel.textContent = `Showing: ${period.toUpperCase()} — ${label}`;
 
@@ -421,8 +426,8 @@ function render() {
   els.outboundCases.textContent = String(outbound.length);
   els.outboundSub.textContent = total ? `${pct(outbound.length, total)}% of total` : "—";
 
-  els.calledCustomers.textContent = String(outboundCalled.length);
-  els.calledSub.textContent = "outbound called";
+  els.calledCustomers.textContent = String(allCalled.length);
+  els.calledSub.textContent = total ? `${pct(allCalled.length, total)}% of total` : "—";
 
   const rate = pct(outboundCalled.length, outbound.length);
   els.callRateLabel.textContent = `${rate}%`;

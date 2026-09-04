@@ -216,4 +216,71 @@
     padding-left: 0;
     padding-right: 0;
   }
-  
+
+  /* =========================
+     Period segmented control
+     ========================= */
+  .stats-page .segmented{
+    display:flex;
+    background: rgba(2,6,23,0.05);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .stats-page .segmented-btn{
+    flex:1;
+    border:none;
+    background:transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 10px;
+    border-radius: 9px;
+    cursor:pointer;
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease;
+  }
+
+  .stats-page .segmented-btn:hover{ color: var(--text); }
+
+  .stats-page .segmented-btn.active{
+    background:#fff;
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(15,23,42,0.12);
+  }
+
+  .stats-page .month-select-row{
+    display:flex;
+    gap:8px;
+  }
+
+  .stats-page .month-select-row .input{
+    flex:1;
+    min-width:0;
+  }
+
+  /* KPI card accent + icon dot */
+  .stats-page .kpi-card{
+    position:relative;
+    overflow:hidden;
+  }
+
+  .stats-page .kpi-card::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:3px;
+    background: linear-gradient(90deg, var(--accent), rgba(249,115,22,0.25));
+  }
+
+  /* Chart bar hover feedback */
+  .stats-page .chart svg .bar-rect{
+    transition: opacity .12s ease;
+  }
+  .stats-page .chart svg .bar-rect:hover{
+    opacity: 0.8;
+  }
+
+  .stats-page .chart svg{
+    display:block;
+  }

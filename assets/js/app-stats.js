@@ -11,9 +11,13 @@ window.addEventListener("error", (e) => {
 const els = {
   rangeLabel: qs("#rangeLabel"),
 
-  periodSelect: qs("#periodSelect"),
+  periodSegmented: qs("#periodSegmented"),
+  dayPickerWrap: qs("#dayPickerWrap"),
+  monthPickerWrap: qs("#monthPickerWrap"),
+  yearPickerWrap: qs("#yearPickerWrap"),
   dayPicker: qs("#dayPicker"),
-  monthPicker: qs("#monthPicker"),
+  monthMonthSelect: qs("#monthMonthSelect"),
+  monthYearSelect: qs("#monthYearSelect"),
   yearPicker: qs("#yearPicker"),
   btnToday: qs("#btnToday"),
 
@@ -47,11 +51,6 @@ function toDateInputValue(d) {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-}
-function toMonthInputValue(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
 }
 function startOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).getTime();
@@ -101,8 +100,20 @@ function matchesFlow(c, flow) {
   return true; // all
 }
 
+// -------- period state (replaces the old native <select>/<input type=month>)
+let currentPeriod = "day";
+const MONTH_NAMES = Array.from({ length: 12 }, (_, i) =>
+  new Date(2000, i, 1).toLocaleDateString(undefined, { month: "long" })
+);
+
+function fillMonthMonthSelect() {
+  els.monthMonthSelect.innerHTML = MONTH_NAMES.map(
+    (name, i) => `<option value="${i + 1}">${name}</option>`
+  ).join("");
+}
+
 // -------- picker helpers
-function fillYearPicker(allCases) {
+function getYearsFromCases(allCases) {
   const years = new Set();
   const nowY = new Date().getFullYear();
   years.add(nowY);
@@ -110,21 +121,30 @@ function fillYearPicker(allCases) {
     const t = caseTime(c);
     if (t) years.add(new Date(t).getFullYear());
   }
-  const sorted = Array.from(years).sort((a, b) => b - a);
+  return Array.from(years).sort((a, b) => b - a);
+}
 
-  els.yearPicker.innerHTML = "";
-  for (const y of sorted) {
-    const opt = document.createElement("option");
-    opt.value = String(y);
-    opt.textContent = String(y);
-    els.yearPicker.appendChild(opt);
-  }
+function fillYearPicker(allCases) {
+  const sorted = getYearsFromCases(allCases);
+  const yearOptions = sorted.map((y) => `<option value="${y}">${y}</option>`).join("");
+
+  const prevYear = els.yearPicker.value;
+  els.yearPicker.innerHTML = yearOptions;
+  if (prevYear && sorted.includes(Number(prevYear))) els.yearPicker.value = prevYear;
+
+  const prevMonthYear = els.monthYearSelect.value;
+  els.monthYearSelect.innerHTML = yearOptions;
+  if (prevMonthYear && sorted.includes(Number(prevMonthYear))) els.monthYearSelect.value = prevMonthYear;
 }
 
 function setPickerVisibility(period) {
-  els.dayPicker.style.display = period === "day" ? "" : "none";
-  els.monthPicker.style.display = period === "month" ? "" : "none";
-  els.yearPicker.style.display = period === "year" ? "" : "none";
+  els.dayPickerWrap.style.display = period === "day" ? "" : "none";
+  els.monthPickerWrap.style.display = period === "month" ? "" : "none";
+  els.yearPickerWrap.style.display = period === "year" ? "" : "none";
+
+  els.periodSegmented.querySelectorAll(".segmented-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.period === period);
+  });
 }
 
 function getRange(period) {
@@ -135,10 +155,8 @@ function getRange(period) {
     return { fromTs: startOfDay(d), toTs: endOfDay(d), label: d.toLocaleDateString() };
   }
   if (period === "month") {
-    const val = els.monthPicker.value || toMonthInputValue(now); // YYYY-MM
-    const [yStr, mStr] = val.split("-");
-    const y = Number(yStr);
-    const mIndex = Number(mStr) - 1;
+    const y = Number(els.monthYearSelect.value || now.getFullYear());
+    const mIndex = Number(els.monthMonthSelect.value || now.getMonth() + 1) - 1;
     const fromTs = startOfMonth(y, mIndex);
     const toTs = endOfMonth(y, mIndex);
     const label = new Date(y, mIndex, 1).toLocaleDateString(undefined, { year: "numeric", month: "long" });
@@ -166,9 +184,17 @@ function renderBarChart(container, labels, values) {
   const innerH = h - padT - padB;
   const n = Math.max(values.length, 1);
   const m = Math.max(maxVal(values), 1);
+  const gradId = `grad-${container.id || "bar"}`;
 
   const gap = 8;
   const barW = Math.max(6, (innerW - gap * (n - 1)) / n);
+
+  const defs = `<defs>
+    <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--accent)" />
+      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.55" />
+    </linearGradient>
+  </defs>`;
 
   const grid = [0.0, 0.5, 1.0]
     .map((p) => {
@@ -182,7 +208,8 @@ function renderBarChart(container, labels, values) {
       const x = padL + i * (barW + gap);
       const bh = (v / m) * innerH;
       const y = padT + (innerH - bh);
-      return `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="8" fill="var(--accent)"></rect>`;
+      const label = labels[i] ?? "";
+      return `<rect class="bar-rect" x="${x}" y="${y}" width="${barW}" height="${Math.max(bh, v > 0 ? 2 : 0)}" rx="6" fill="url(#${gradId})"><title>${label}: ${v}</title></rect>`;
     })
     .join("");
 
@@ -198,7 +225,7 @@ function renderBarChart(container, labels, values) {
   const yMax = `<text x="${padL - 8}" y="${padT + 10}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">${m}</text>`;
   const yZero = `<text x="${padL - 8}" y="${padT + innerH}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">0</text>`;
 
-  container.innerHTML = svgWrap(`${grid}${bars}${xLabels}${yMax}${yZero}`, w, h);
+  container.innerHTML = svgWrap(`${defs}${grid}${bars}${xLabels}${yMax}${yZero}`, w, h);
 }
 
 function renderLineChart(container, labels, values) {
@@ -209,6 +236,14 @@ function renderLineChart(container, labels, values) {
   const innerH = h - padT - padB;
   const n = Math.max(values.length, 1);
   const m = Math.max(maxVal(values), 1);
+  const gradId = `grad-${container.id || "line"}`;
+
+  const defs = `<defs>
+    <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
+    </linearGradient>
+  </defs>`;
 
   const grid = [0.0, 0.5, 1.0]
     .map((p) => {
@@ -223,11 +258,18 @@ function renderLineChart(container, labels, values) {
     return { x, y };
   });
 
-  const poly = `<polyline fill="none" stroke="var(--accent)" stroke-width="3" points="${pts
+  const areaPath = pts.length
+    ? `M ${pts[0].x},${padT + innerH} L ${pts.map((p) => `${p.x},${p.y}`).join(" L ")} L ${pts[pts.length - 1].x},${padT + innerH} Z`
+    : "";
+  const area = areaPath ? `<path d="${areaPath}" fill="url(#${gradId})" stroke="none" />` : "";
+
+  const poly = `<polyline fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="${pts
     .map((p) => `${p.x},${p.y}`)
     .join(" ")}" />`;
 
-  const dots = pts.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--accent)" />`).join("");
+  const dots = pts
+    .map((p, i) => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--accent)"><title>${labels[i]}: ${values[i]}</title></circle>`)
+    .join("");
 
   const tickEvery = n > 16 ? Math.ceil(n / 8) : 1;
   const xLabels = labels
@@ -241,7 +283,7 @@ function renderLineChart(container, labels, values) {
   const yMax = `<text x="${padL - 8}" y="${padT + 10}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">${m}</text>`;
   const yZero = `<text x="${padL - 8}" y="${padT + innerH}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">0</text>`;
 
-  container.innerHTML = svgWrap(`${grid}${poly}${dots}${xLabels}${yMax}${yZero}`, w, h);
+  container.innerHTML = svgWrap(`${defs}${grid}${area}${poly}${dots}${xLabels}${yMax}${yZero}`, w, h);
 }
 
 // -------- aggregations for dashboard charts
@@ -341,11 +383,14 @@ function render() {
 
   fillYearPicker(all);
 
-  const period = els.periodSelect.value || "day";
+  const period = currentPeriod;
   setPickerVisibility(period);
 
   if (period === "day" && !els.dayPicker.value) els.dayPicker.value = toDateInputValue(new Date());
-  if (period === "month" && !els.monthPicker.value) els.monthPicker.value = toMonthInputValue(new Date());
+  if (period === "month" && !els.monthYearSelect.value) {
+    els.monthMonthSelect.value = String(new Date().getMonth() + 1);
+    els.monthYearSelect.value = String(new Date().getFullYear());
+  }
   if (period === "year" && !els.yearPicker.value) els.yearPicker.value = String(new Date().getFullYear());
 
   const { fromTs, toTs, label } = getRange(period);
@@ -400,16 +445,26 @@ function render() {
 }
 
 function setToday() {
-  els.periodSelect.value = "day";
+  currentPeriod = "day";
   setPickerVisibility("day");
   els.dayPicker.value = toDateInputValue(new Date());
   render();
 }
 
 // events
-els.periodSelect.addEventListener("change", render);
+fillMonthMonthSelect();
+
+els.periodSegmented.addEventListener("click", (e) => {
+  const btn = e.target.closest(".segmented-btn");
+  if (!btn) return;
+  currentPeriod = btn.dataset.period;
+  setPickerVisibility(currentPeriod);
+  render();
+});
+
 els.dayPicker.addEventListener("change", render);
-els.monthPicker.addEventListener("change", render);
+els.monthMonthSelect.addEventListener("change", render);
+els.monthYearSelect.addEventListener("change", render);
 els.yearPicker.addEventListener("change", render);
 els.flowFilter?.addEventListener("change", render);
 els.btnToday.addEventListener("click", setToday);

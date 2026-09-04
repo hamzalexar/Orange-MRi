@@ -75,27 +75,30 @@
 
               <div class="panel-body">
                 <div class="field">
-                  <label class="muted" for="periodSelect">Period</label>
-                  <select class="input" id="periodSelect">
-                    <option value="day">Day</option>
-                    <option value="month">Month</option>
-                    <option value="year">Year</option>
-                  </select>
+                  <span class="muted">Period</span>
+                  <div class="segmented" id="periodSegmented" role="tablist">
+                    <button type="button" class="segmented-btn" data-period="day" role="tab">Day</button>
+                    <button type="button" class="segmented-btn" data-period="month" role="tab">Month</button>
+                    <button type="button" class="segmented-btn" data-period="year" role="tab">Year</button>
+                  </div>
                 </div>
 
-                <div class="field">
+                <div class="field" id="dayPickerWrap">
                   <label class="muted" for="dayPicker">Day</label>
                   <input class="input" id="dayPicker" type="date" />
                 </div>
 
-                <div class="field">
-                  <label class="muted" for="monthPicker">Month</label>
-                  <input class="input" id="monthPicker" type="month" style="display:none;" />
+                <div class="field" id="monthPickerWrap" style="display:none;">
+                  <span class="muted">Month</span>
+                  <div class="month-select-row">
+                    <select class="input" id="monthMonthSelect"></select>
+                    <select class="input" id="monthYearSelect"></select>
+                  </div>
                 </div>
 
-                <div class="field">
+                <div class="field" id="yearPickerWrap" style="display:none;">
                   <label class="muted" for="yearPicker">Year</label>
-                  <select class="input" id="yearPicker" style="display:none;"></select>
+                  <select class="input" id="yearPicker"></select>
                 </div>
 
                 <div style="display:flex; gap:10px; margin-top:10px;">
@@ -173,7 +176,7 @@
 
   </div>
 
-  <script type="module" src="./assets/js/app-stats.js?v=20260213-2"></script>
+  <script type="module" src="./assets/js/app-stats.js?v=20260904"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
 </body>

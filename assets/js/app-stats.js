@@ -169,124 +169,113 @@ function getRange(period) {
   return { fromTs: startOfYear(y), toTs: endOfYear(y), label: String(y) };
 }
 
-// -------- SVG chart helpers (no libs)
-function svgWrap(inner, w = 620, h = 220) {
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="chart">${inner}</svg>`;
-}
-function maxVal(arr) {
-  let m = 0;
-  for (const v of arr) if (v > m) m = v;
-  return m;
-}
+// -------- Chart.js helpers
+// Zelfde kleuren als de vernieuwde Cases-pagina: oranje voor outbound/brand,
+// blauw voor inbound. Canvas kent geen CSS var(), dus hier letterlijk.
+const CHART_ORANGE = "#f97316";
+const CHART_BLUE = "#2563eb";
+const CHART_FONT = "system-ui, -apple-system, Segoe UI, Roboto, Arial";
 
-function renderBarChart(container, labels, values) {
-  if (!container) return;
-  const w = 620, h = 220;
-  const padL = 34, padR = 14, padT = 14, padB = 40;
-  const innerW = w - padL - padR;
-  const innerH = h - padT - padB;
-  const n = Math.max(values.length, 1);
-  const m = Math.max(maxVal(values), 1);
-  const gradId = `grad-${container.id || "bar"}`;
+const chartInstances = {};
 
-  const gap = 8;
-  const barW = Math.max(6, (innerW - gap * (n - 1)) / n);
-
-  const defs = `<defs>
-    <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="var(--accent)" />
-      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.55" />
-    </linearGradient>
-  </defs>`;
-
-  const grid = [0.0, 0.5, 1.0]
-    .map((p) => {
-      const y = padT + innerH - innerH * p;
-      return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(0,0,0,0.08)" />`;
-    })
-    .join("");
-
-  const bars = values
-    .map((v, i) => {
-      const x = padL + i * (barW + gap);
-      const bh = (v / m) * innerH;
-      const y = padT + (innerH - bh);
-      const label = labels[i] ?? "";
-      return `<rect class="bar-rect" x="${x}" y="${y}" width="${barW}" height="${Math.max(bh, v > 0 ? 2 : 0)}" rx="6" fill="url(#${gradId})"><title>${label}: ${v}</title></rect>`;
-    })
-    .join("");
-
-  const tickEvery = n > 16 ? Math.ceil(n / 8) : 1;
-  const xLabels = labels
-    .map((t, i) => {
-      if (i % tickEvery !== 0) return "";
-      const x = padL + i * (barW + gap) + barW / 2;
-      return `<text x="${x}" y="${h - 16}" text-anchor="middle" font-size="12" fill="rgba(2,6,23,0.65)">${t}</text>`;
-    })
-    .join("");
-
-  const yMax = `<text x="${padL - 8}" y="${padT + 10}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">${m}</text>`;
-  const yZero = `<text x="${padL - 8}" y="${padT + innerH}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">0</text>`;
-
-  container.innerHTML = svgWrap(`${defs}${grid}${bars}${xLabels}${yMax}${yZero}`, w, h);
+function destroyChart(id) {
+  if (chartInstances[id]) {
+    chartInstances[id].destroy();
+    delete chartInstances[id];
+  }
 }
 
-function renderLineChart(container, labels, values) {
-  if (!container) return;
-  const w = 620, h = 220;
-  const padL = 34, padR = 14, padT = 14, padB = 40;
-  const innerW = w - padL - padR;
-  const innerH = h - padT - padB;
-  const n = Math.max(values.length, 1);
-  const m = Math.max(maxVal(values), 1);
-  const gradId = `grad-${container.id || "line"}`;
+function hexWithAlpha(hex, alphaHex) {
+  return `${hex}${alphaHex}`;
+}
 
-  const defs = `<defs>
-    <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.35" />
-      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
-    </linearGradient>
-  </defs>`;
+function baseChartOptions() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 200 },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: "rgba(2,6,23,0.55)",
+          font: { size: 11, family: CHART_FONT },
+          maxRotation: 0,
+          autoSkipPadding: 12,
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: "rgba(2,6,23,0.06)" },
+        ticks: {
+          precision: 0,
+          color: "rgba(2,6,23,0.55)",
+          font: { size: 11, family: CHART_FONT },
+        },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "#0f172a",
+        titleFont: { family: CHART_FONT, weight: "600" },
+        bodyFont: { family: CHART_FONT },
+        padding: 10,
+        cornerRadius: 8,
+        displayColors: false,
+        callbacks: {
+          label: (ctx) => `${ctx.parsed.y} case${ctx.parsed.y === 1 ? "" : "s"}`,
+        },
+      },
+    },
+  };
+}
 
-  const grid = [0.0, 0.5, 1.0]
-    .map((p) => {
-      const y = padT + innerH - innerH * p;
-      return `<line x1="${padL}" y1="${y}" x2="${w - padR}" y2="${y}" stroke="rgba(0,0,0,0.08)" />`;
-    })
-    .join("");
-
-  const pts = values.map((v, i) => {
-    const x = padL + (n === 1 ? 0 : (i / (n - 1)) * innerW);
-    const y = padT + innerH - (v / m) * innerH;
-    return { x, y };
+function renderBarChart(canvas, labels, values, color) {
+  if (!canvas) return;
+  destroyChart(canvas.id);
+  chartInstances[canvas.id] = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: color,
+          hoverBackgroundColor: color,
+          borderRadius: 6,
+          maxBarThickness: 36,
+        },
+      ],
+    },
+    options: baseChartOptions(),
   });
+}
 
-  const areaPath = pts.length
-    ? `M ${pts[0].x},${padT + innerH} L ${pts.map((p) => `${p.x},${p.y}`).join(" L ")} L ${pts[pts.length - 1].x},${padT + innerH} Z`
-    : "";
-  const area = areaPath ? `<path d="${areaPath}" fill="url(#${gradId})" stroke="none" />` : "";
-
-  const poly = `<polyline fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="${pts
-    .map((p) => `${p.x},${p.y}`)
-    .join(" ")}" />`;
-
-  const dots = pts
-    .map((p, i) => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--accent)"><title>${labels[i]}: ${values[i]}</title></circle>`)
-    .join("");
-
-  const tickEvery = n > 16 ? Math.ceil(n / 8) : 1;
-  const xLabels = labels
-    .map((t, i) => {
-      if (i % tickEvery !== 0) return "";
-      const x = padL + (n === 1 ? 0 : (i / (n - 1)) * innerW);
-      return `<text x="${x}" y="${h - 16}" text-anchor="middle" font-size="12" fill="rgba(2,6,23,0.65)">${t}</text>`;
-    })
-    .join("");
-
-  const yMax = `<text x="${padL - 8}" y="${padT + 10}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">${m}</text>`;
-  const yZero = `<text x="${padL - 8}" y="${padT + innerH}" text-anchor="end" font-size="12" fill="rgba(2,6,23,0.65)">0</text>`;
-
-  container.innerHTML = svgWrap(`${defs}${grid}${area}${poly}${dots}${xLabels}${yMax}${yZero}`, w, h);
+function renderLineChart(canvas, labels, values, color) {
+  if (!canvas) return;
+  destroyChart(canvas.id);
+  chartInstances[canvas.id] = new Chart(canvas, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          data: values,
+          borderColor: color,
+          backgroundColor: hexWithAlpha(color, "26"),
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 2,
+          pointHoverRadius: 5,
+          pointBackgroundColor: color,
+          pointBorderColor: "#fff",
+        },
+      ],
+    },
+    options: baseChartOptions(),
+  });
 }
 
 // -------- aggregations for dashboard charts
@@ -437,19 +426,22 @@ function render() {
   els.callRateBar.style.width = `${rate}%`;
   els.callRateSub.textContent = `${outboundCalled.length} / ${outbound.length} outbound`;
 
-  // Charts
+  // Charts — blauw zodra je specifiek naar Inbound filtert, anders oranje
+  // (zelfde kleurtaal als de Cases-pagina).
+  const chartColor = flow === "inbound" ? CHART_BLUE : CHART_ORANGE;
+
   const hourBins = groupByHour(filteredAll, fromTs, toTs);
-  const hourLabels = Array.from({ length: 24 }, (_, i) => String(i));
-  renderLineChart(els.chartHour, hourLabels, hourBins);
+  const hourLabels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+  renderLineChart(els.chartHour, hourLabels, hourBins, chartColor);
 
   const day = groupLastNDays(filteredAll, toTs, 14);
-  renderBarChart(els.chartDay, day.labels, day.values);
+  renderBarChart(els.chartDay, day.labels, day.values, chartColor);
 
   const week = groupLastNWeeks(filteredAll, toTs, 8);
-  renderBarChart(els.chartWeek, week.labels, week.values);
+  renderBarChart(els.chartWeek, week.labels, week.values, chartColor);
 
   const month = groupLastNMonths(filteredAll, toTs, 12);
-  renderBarChart(els.chartMonth, month.labels, month.values);
+  renderBarChart(els.chartMonth, month.labels, month.values, chartColor);
 }
 
 function setToday() {

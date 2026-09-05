@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="./assets/css/base.css" />
   <link rel="stylesheet" href="./assets/css/stats.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -42,13 +43,13 @@
             <div class="muted" id="totalSub">—</div>
           </div>
 
-          <div class="kpi-card">
+          <div class="kpi-card inbound">
             <div class="kpi-title">Inbound</div>
             <div class="kpi-value" id="inboundCases">0</div>
             <div class="muted" id="inboundSub">—</div>
           </div>
 
-          <div class="kpi-card">
+          <div class="kpi-card outbound">
             <div class="kpi-title">Outbound</div>
             <div class="kpi-value" id="outboundCases">0</div>
             <div class="muted" id="outboundSub">—</div>
@@ -136,7 +137,7 @@
                   <div class="panel-title">Cases per hour</div>
                 </div>
                 <div class="panel-body">
-                  <div class="chart" id="chartHour"></div>
+                  <div class="chart-wrap"><canvas id="chartHour"></canvas></div>
                 </div>
               </div>
 
@@ -145,7 +146,7 @@
                   <div class="panel-title">Cases per day</div>
                 </div>
                 <div class="panel-body">
-                  <div class="chart" id="chartDay"></div>
+                  <div class="chart-wrap"><canvas id="chartDay"></canvas></div>
                 </div>
               </div>
             </div>
@@ -156,7 +157,7 @@
                   <div class="panel-title">Cases per week</div>
                 </div>
                 <div class="panel-body">
-                  <div class="chart" id="chartWeek"></div>
+                  <div class="chart-wrap"><canvas id="chartWeek"></canvas></div>
                 </div>
               </div>
 
@@ -165,7 +166,7 @@
                   <div class="panel-title">Cases per month</div>
                 </div>
                 <div class="panel-body">
-                  <div class="chart" id="chartMonth"></div>
+                  <div class="chart-wrap"><canvas id="chartMonth"></canvas></div>
                 </div>
               </div>
             </div>

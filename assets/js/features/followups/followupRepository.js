@@ -1,9 +1,31 @@
 import { readJson, writeJson } from "../../core/storage.js";
 import { supabase } from "../../config.js";
 
-const STORAGE_KEY = "bot_worklog_followups_v1";
+const LEGACY_STORAGE_KEY = "bot_worklog_followups_v1";
 const SYNC_META_KEY = "bot_worklog_followups_sync_meta_v1";
 const TABLE = "worklog_followups";
+
+// Zelfde eenmalige migratie als bij caseRepository: de originele gebruiker
+// krijgt zijn bestaande lokale data overgezet naar zijn eigen sleutel.
+const OWNER_EMAIL = "lexar.hamza@gmail.com";
+
+let currentStorageKey = LEGACY_STORAGE_KEY;
+
+function storageKeyFor(userId) {
+  return `bot_worklog_followups_v1::${userId}`;
+}
+
+function migrateLegacyDataIfOwner(user) {
+  if (!user || user.email !== OWNER_EMAIL) return;
+
+  const scopedKey = storageKeyFor(user.id);
+  if (localStorage.getItem(scopedKey) != null) return; // al gemigreerd op dit toestel
+
+  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacy != null) {
+    localStorage.setItem(scopedKey, legacy);
+  }
+}
 
 function makeId() {
   return `${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
@@ -67,12 +89,21 @@ function mergeLocalRemote(localItems, remoteItems) {
 export const followupRepository = {
   async init() {
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        migrateLegacyDataIfOwner(user);
+        currentStorageKey = storageKeyFor(user.id);
+      }
+
       const local = this.getAll();
       const remote = await remoteList();
 
       const merged = mergeLocalRemote(local, remote);
 
-      writeJson(STORAGE_KEY, merged);
+      writeJson(currentStorageKey, merged);
       await remoteUpsertMany(merged);
 
       writeJson(SYNC_META_KEY, {
@@ -91,7 +122,7 @@ export const followupRepository = {
   },
 
   getAll() {
-    return readJson(STORAGE_KEY, []);
+    return readJson(currentStorageKey, []);
   },
 
   getById(id) {
@@ -100,7 +131,7 @@ export const followupRepository = {
 
   replaceAll(items) {
     const safe = Array.isArray(items) ? items : [];
-    writeJson(STORAGE_KEY, safe);
+    writeJson(currentStorageKey, safe);
     remoteUpsertMany(safe).catch((e) => console.warn("Followups replaceAll push failed:", e));
   },
 
@@ -116,7 +147,7 @@ export const followupRepository = {
     };
 
     all.push(item);
-    writeJson(STORAGE_KEY, all);
+    writeJson(currentStorageKey, all);
 
     remoteUpsertMany([item]).catch((e) => console.warn("Followups create push failed:", e));
     return item;
@@ -129,7 +160,7 @@ export const followupRepository = {
 
     const updated = { ...all[idx], ...patch, updatedAt: Date.now() };
     all[idx] = updated;
-    writeJson(STORAGE_KEY, all);
+    writeJson(currentStorageKey, all);
 
     remoteUpsertMany([updated]).catch((e) => console.warn("Followups update push failed:", e));
     return updated;
@@ -138,13 +169,13 @@ export const followupRepository = {
   remove(id) {
     const all = this.getAll();
     const next = all.filter((x) => x.id !== id);
-    writeJson(STORAGE_KEY, next);
+    writeJson(currentStorageKey, next);
 
     remoteDelete(id).catch((e) => console.warn("Followups delete failed:", e));
     return next.length !== all.length;
   },
 
   clearAll() {
-    writeJson(STORAGE_KEY, []);
+    writeJson(currentStorageKey, []);
   },
 };

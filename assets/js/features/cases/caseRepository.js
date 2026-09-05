@@ -1,13 +1,35 @@
 import { readJson, writeJson } from "../../core/storage.js";
 import { supabase } from "../../config.js";
-const STORAGE_KEY = "bot_worklog_cases_v1";
+
+const LEGACY_STORAGE_KEY = "bot_worklog_cases_v1";
 const SYNC_META_KEY = "bot_worklog_sync_meta_v1";
 const TABLE = "worklog_cases";
 
-/**
- * ✅ Vul dit in met jouw gegevens
- */
+// Eenmalige migratie: dit was het originele account voordat er per-gebruiker
+// login bestond. Zijn bestaande (ongescheiden) lokale data wordt bij de
+// eerste login na deze update overgezet naar zijn eigen sleutel, zodat ze
+// niet verloren gaat en niet zichtbaar wordt voor andere accounts.
+const OWNER_EMAIL = "lexar.hamza@gmail.com";
 
+// Elke gebruiker heeft zijn eigen localStorage-sleutel, zodat wisselen van
+// account op hetzelfde toestel nooit elkaars cases toont.
+let currentStorageKey = LEGACY_STORAGE_KEY;
+
+function storageKeyFor(userId) {
+  return `bot_worklog_cases_v1::${userId}`;
+}
+
+function migrateLegacyDataIfOwner(user) {
+  if (!user || user.email !== OWNER_EMAIL) return;
+
+  const scopedKey = storageKeyFor(user.id);
+  if (localStorage.getItem(scopedKey) != null) return; // al gemigreerd op dit toestel
+
+  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacy != null) {
+    localStorage.setItem(scopedKey, legacy);
+  }
+}
 
 function makeId() {
   return `${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
@@ -103,13 +125,22 @@ export const caseRepository = {
    */
   async init() {
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        migrateLegacyDataIfOwner(user);
+        currentStorageKey = storageKeyFor(user.id);
+      }
+
       const local = this.getAll();
       const remote = await remoteList();
 
       const merged = mergeLocalRemote(local, remote);
 
       // schrijf lokaal zodat je UI meteen de juiste lijst heeft
-      writeJson(STORAGE_KEY, merged);
+      writeJson(currentStorageKey, merged);
 
       // push merged terug (zodat devices gelijk lopen)
       await remoteUpsertMany(merged);
@@ -131,7 +162,7 @@ export const caseRepository = {
   },
 
   getAll() {
-    return readJson(STORAGE_KEY, []);
+    return readJson(currentStorageKey, []);
   },
 
   getById(id) {
@@ -141,7 +172,7 @@ export const caseRepository = {
 
   replaceAll(cases) {
     const safe = Array.isArray(cases) ? cases : [];
-    writeJson(STORAGE_KEY, safe);
+    writeJson(currentStorageKey, safe);
 
     // fire-and-forget
     remoteUpsertMany(safe).catch((e) =>
@@ -162,7 +193,7 @@ export const caseRepository = {
     };
 
     all.push(newCase);
-    writeJson(STORAGE_KEY, all);
+    writeJson(currentStorageKey, all);
 
     // fire-and-forget
     remoteUpsertMany([newCase]).catch((e) =>
@@ -187,7 +218,7 @@ export const caseRepository = {
     };
 
     all[idx] = updated;
-    writeJson(STORAGE_KEY, all);
+    writeJson(currentStorageKey, all);
 
     // fire-and-forget
     remoteUpsertMany([updated]).catch((e) =>
@@ -200,7 +231,7 @@ export const caseRepository = {
   remove(id) {
     const all = this.getAll();
     const next = all.filter((c) => c.id !== id);
-    writeJson(STORAGE_KEY, next);
+    writeJson(currentStorageKey, next);
 
     // fire-and-forget
     remoteDelete(id).catch((e) =>
@@ -211,7 +242,7 @@ export const caseRepository = {
   },
 
   clearAll() {
-    writeJson(STORAGE_KEY, []);
+    writeJson(currentStorageKey, []);
     // (remote clear doen we later eventueel via RPC/SQL)
   },
 };

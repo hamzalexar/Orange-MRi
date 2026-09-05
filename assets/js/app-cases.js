@@ -2,6 +2,7 @@ import { DROPDOWNS } from "./config/dropdowns.js";
 import { toast } from "./ui/toast.js";
 import { downloadTextFile } from "./ui/download.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
+import { requireAuth, signOut } from "./core/auth.js";
 
 /**
  * cases.html DOM
@@ -319,6 +320,9 @@ const time = ts
   }
 
   async function init() {
+    await requireAuth();
+    document.getElementById("signOutBtn")?.addEventListener("click", signOut);
+
     // ✅ Supabase sync (als beschikbaar)
     if (typeof caseRepository.init === "function") {
       await caseRepository.init();

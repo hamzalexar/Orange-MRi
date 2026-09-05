@@ -5,7 +5,9 @@ import { caseRepository } from "./features/cases/caseRepository.js";
 import { formatDateTime } from "./ui/datetime.js";
 import { draftRepository } from "./features/cases/draftRepository.js";
 import { initNavbar } from "./ui/navbar.js";
+import { requireAuth } from "./core/auth.js";
 initNavbar();
+await requireAuth();
 await caseRepository.init();
 
 

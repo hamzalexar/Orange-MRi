@@ -22,9 +22,15 @@ async function remoteList() {
 async function remoteUpsertMany(items) {
   if (!items?.length) return;
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return; // niet ingelogd: geen remote sync, blijft lokaal
+
   const nowIso = new Date().toISOString();
   const rows = items.map((x) => ({
     id: x.id,
+    user_id: user.id,
     payload: x,
     updated_at: nowIso,
   }));

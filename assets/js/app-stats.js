@@ -1,5 +1,8 @@
 import { qs } from "./ui/dom.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
+import { requireAuth, signOut } from "./core/auth.js";
+await requireAuth();
+document.getElementById("signOutBtn")?.addEventListener("click", signOut);
 await caseRepository.init();
 
 console.log("app-stats.js loaded ✅");

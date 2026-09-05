@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BOT Worklog – Login</title>
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <style>
+    .login-wrap{
+      min-height: calc(100vh - 70px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .login-panel{
+      width:100%;
+      max-width:360px;
+      padding:24px;
+    }
+    .login-panel h1{
+      font-size:18px;
+      margin:0 0 4px 0;
+    }
+    .login-panel .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:14px;
+    }
+    .login-panel .field span{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:600;
+    }
+    .login-panel .btn.primary{
+      width:100%;
+      justify-content:center;
+      margin-top:18px;
+      height:38px;
+    }
+    .login-error{
+      color:var(--danger);
+      font-size:13px;
+      margin-top:10px;
+      display:none;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <div class="title">BOT Cable MRI</div>
+        <div class="subtitle">Worklog tool</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="login-wrap">
+    <section class="panel login-panel">
+      <h1>Inloggen</h1>
+      <div class="muted">Log in met je account om je worklog te gebruiken.</div>
+
+      <form id="loginForm" autocomplete="on">
+        <label class="field">
+          <span>E-mail</span>
+          <input class="input" id="email" type="email" autocomplete="username" required />
+        </label>
+        <label class="field">
+          <span>Wachtwoord</span>
+          <input class="input" id="password" type="password" autocomplete="current-password" required />
+        </label>
+        <button class="btn primary" id="loginBtn" type="submit">Inloggen</button>
+        <div class="login-error" id="loginError"></div>
+      </form>
+    </section>
+  </div>
+
+  <script type="module" src="./assets/js/app-login.js"></script>
+</body>
+</html>

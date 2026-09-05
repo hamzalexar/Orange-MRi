@@ -1,4 +1,5 @@
 import { followupRepository } from "./features/followups/followupRepository.js";
+import { requireAuth, signOut } from "./core/auth.js";
 
 // ✅ Guard: als followups.html DOM er niet is, stop (voorkomt crashes als script ergens anders geladen wordt)
 const rowsEl = document.getElementById("rows");
@@ -296,6 +297,9 @@ if (!rowsEl) {
   }
 
   async function init() {
+    await requireAuth();
+    document.getElementById("signOutBtn")?.addEventListener("click", signOut);
+
     // ✅ belangrijk: eerst sync ophalen
     await followupRepository.init();
     bind();

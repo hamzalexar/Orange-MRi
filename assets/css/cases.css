@@ -3,129 +3,281 @@
    (alles scoped op .cases-page)
    ========================= */
 
-   .cases-page .panel-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:14px;
-    border-bottom:1px solid var(--border);
-    gap:12px;
-    flex-wrap:wrap;
-  }
-  
-  .cases-page .panel-title{
-    font-weight:700;
-  }
-  
-  /* Toolbar: maak inputs niet 100% breed (anders overlap) */
-  .cases-page .panel-tools{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap:wrap;
-  }
-  
-  .cases-page .panel-tools .input{
-    width:auto;
-    min-width:180px;
-  }
-  
-  .cases-page #searchInput{
-    min-width:240px;
-  }
-  
-  /* 2 kolommen */
-  .cases-page .split{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
-    padding:14px;
-  }
-  
-  /* Kolommen als box (Optie 2) */
-  .cases-page .col{
-    border:1px solid var(--border);
-    border-radius:12px;
-    background: var(--panel);
-    overflow:hidden;
-  }
-  
-  .cases-page .section-title{
-    margin:0;
-    padding:12px 14px;
-    font-size:14px;
-    font-weight:600;
-    border-bottom:1px solid var(--border);
-    background:#fff;
-  }
-  
-  /* Case list: in box-list stijl */
-  .cases-page .case-list{
-    padding:0; /* belangrijk: geen extra padding rond de lijst */
-    display:flex;
-    flex-direction:column;
-  }
-  
-  /* Elke case als "row" in de box */
-  .cases-page .case-card{
-    background:#fff;
-    padding:14px;
-    border:0;
-    border-top:1px solid var(--border);
-    border-radius:0;
-  }
-  
-  .cases-page .case-card:first-child{
-    border-top:0;
-  }
-  
-  /* Top layout */
-  .cases-page .case-top{
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-    align-items:flex-start;
-  }
-  
-  .cases-page .case-code{
-    font-weight:700;
-    font-size:18px;
-  }
-  
-  /* Snippet/description */
-  .cases-page .case-snippet{
-    color:var(--muted);
-    margin-top:8px;
-    font-size:13px;
-    line-height:1.4;
-  }
-  
-  /* Meta (1 versie, netjes) */
-  .cases-page .case-meta{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap:wrap;
-    margin-top:8px;
-    color:var(--muted);
-    font-size:12px;
-  }
-  
-  /* Als je een onderste meta-rij gebruikt */
-  .cases-page .case-meta-bottom{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-top:10px;
-  }
-  
-  .cases-page .case-meta-bottom .btn{
-    margin-left:auto;
-  }
-  
-  /* Mobile */
-  @media (max-width: 900px){
-    .cases-page .split{ grid-template-columns:1fr; }
-    .cases-page #searchInput{ min-width:0; width:100%; }
-  }
-  
+.cases-page{
+  --outbound-accent: var(--accent);
+  --inbound-accent: #2563eb;
+  --ok-bg: #ecfdf3;   --ok-text: #067647;
+  --warn-bg: #fffaeb; --warn-text: #b54708;
+  --bad-bg: #fef3f2;  --bad-text: #b42318;
+  --neutral-bg: #f2f4f7; --neutral-text: #475467;
+}
+
+.cases-page .container{
+  max-width:1280px;
+}
+
+.cases-page .panel{
+  box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 8px 24px rgba(16,24,40,0.04);
+}
+
+.cases-page .panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 20px;
+  border-bottom:1px solid var(--border);
+  gap:16px;
+  flex-wrap:wrap;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+}
+
+.cases-page .panel-title{
+  font-weight:800;
+  font-size:17px;
+  letter-spacing:-0.01em;
+}
+
+#countLabel{
+  margin-top:2px;
+}
+
+/* Toolbar */
+.cases-page .panel-tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.cases-page .panel-tools .input{
+  width:auto;
+  min-width:150px;
+  height:38px;
+  border-radius:10px;
+}
+
+.cases-page .panel-tools .btn{
+  height:38px;
+  border-radius:10px;
+}
+
+/* Search met icoon */
+.cases-page .search-wrap{
+  position:relative;
+}
+.cases-page .search-wrap::before{
+  content:"";
+  position:absolute;
+  left:11px;
+  top:50%;
+  translate:0 -50%;
+  width:14px;
+  height:14px;
+  background: currentColor;
+  color: var(--muted);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events:none;
+}
+.cases-page .search-wrap #searchInput{
+  padding-left:32px;
+  min-width:220px;
+}
+
+/* 2 kolommen */
+.cases-page .split{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  padding:20px;
+}
+
+.cases-page .col{
+  border:1px solid var(--border);
+  border-radius:14px;
+  background: var(--panel);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.cases-page .section-title{
+  margin:0;
+  padding:14px 16px;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.01em;
+  border-bottom:1px solid var(--border);
+  background:#fff;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.cases-page .section-title::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  flex:none;
+}
+.cases-page .col.outbound .section-title::before{ background: var(--outbound-accent); }
+.cases-page .col.inbound .section-title::before{ background: var(--inbound-accent); }
+
+.cases-page .section-count{
+  margin-left:auto;
+  font-weight:600;
+  font-size:12px;
+  color:var(--muted);
+  background: var(--neutral-bg);
+  padding:2px 9px;
+  border-radius:999px;
+}
+
+/* Scroll binnen de kolom i.p.v. de hele pagina te rekken */
+.cases-page .case-list{
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  max-height: 70vh;
+  overflow-y:auto;
+  background:#fbfbfc;
+}
+
+.cases-page .case-list::-webkit-scrollbar{ width:8px; }
+.cases-page .case-list::-webkit-scrollbar-thumb{ background: var(--border); border-radius:999px; }
+
+.cases-page .case-list .muted{
+  padding:28px 16px;
+  text-align:center;
+}
+
+/* Elke case als kaart */
+.cases-page .case-card{
+  position:relative;
+  background:#fff;
+  padding:14px 16px 14px 20px;
+  border:0;
+  border-top:1px solid var(--border);
+  border-radius:0;
+  cursor:pointer;
+  transition: background-color .12s ease;
+}
+
+.cases-page .case-card::before{
+  content:"";
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:3px;
+  background: transparent;
+  transition: background-color .12s ease;
+}
+.cases-page .col.outbound .case-card::before{ background: color-mix(in srgb, var(--outbound-accent) 35%, transparent); }
+.cases-page .col.inbound .case-card::before{ background: color-mix(in srgb, var(--inbound-accent) 35%, transparent); }
+
+.cases-page .case-card:first-child{ border-top:0; }
+
+.cases-page .case-card:hover{
+  background:#f8fafc;
+}
+.cases-page .case-card:hover::before{
+  background: var(--outbound-accent);
+}
+.cases-page .col.inbound .case-card:hover::before{
+  background: var(--inbound-accent);
+}
+
+.cases-page .case-card:focus-visible{
+  outline: 2px solid var(--accent);
+  outline-offset:-2px;
+}
+
+/* Top layout */
+.cases-page .case-top{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.cases-page .case-code{
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:-0.01em;
+}
+
+.cases-page .case-datetime{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+/* Snippet/description */
+.cases-page .case-snippet{
+  color:#334155;
+  margin-top:8px;
+  font-size:13px;
+  line-height:1.5;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+}
+
+/* Meta rijen */
+.cases-page .case-meta{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.cases-page .case-meta-bottom{
+  margin-top:10px;
+}
+
+.cases-page .case-meta-bottom .btn{
+  margin-left:auto;
+}
+
+/* Pill badges */
+.cases-page .badge{
+  display:inline-flex;
+  align-items:center;
+  padding:3px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:600;
+  white-space:nowrap;
+  background: var(--neutral-bg);
+  color: var(--neutral-text);
+}
+.cases-page .badge.tone-ok{ background:var(--ok-bg); color:var(--ok-text); }
+.cases-page .badge.tone-warn{ background:var(--warn-bg); color:var(--warn-text); }
+.cases-page .badge.tone-bad{ background:var(--bad-bg); color:var(--bad-text); }
+
+/* Delete-knop: subtiel, pas nadrukkelijk bij hover van de kaart */
+.cases-page .js-delete{
+  opacity:0;
+  transform: translateY(2px);
+  transition: opacity .12s ease, transform .12s ease;
+  height:28px;
+  padding:0 10px;
+  font-size:12px;
+  border-radius:8px;
+}
+.cases-page .case-card:hover .js-delete,
+.cases-page .case-card:focus-within .js-delete{
+  opacity:1;
+  transform:none;
+}
+
+/* Mobile */
+@media (max-width: 900px){
+  .cases-page .split{ grid-template-columns:1fr; padding:14px; gap:14px; }
+  .cases-page .search-wrap #searchInput{ min-width:0; width:100%; }
+  .cases-page .panel-tools{ width:100%; }
+  .cases-page .case-list{ max-height:none; }
+  .cases-page .js-delete{ opacity:1; transform:none; }
+}

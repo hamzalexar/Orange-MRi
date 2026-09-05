@@ -49,7 +49,9 @@
           </div>
 
           <div class="panel-tools">
-            <input class="input" id="searchInput" placeholder="Search..." />
+            <div class="search-wrap">
+              <input class="input" id="searchInput" placeholder="Search..." />
+            </div>
             <select class="input" id="outcomeFilter"></select>
 
             <button class="btn ghost" id="exportJsonBtn" type="button">
@@ -73,13 +75,13 @@
         </div>
 
         <div class="split">
-          <div class="col">
-            <h3 class="section-title">Outbound (CMR) cases</h3>
+          <div class="col outbound">
+            <h3 class="section-title">Outbound (CMR) cases <span class="section-count" id="outboundCount">0</span></h3>
             <div class="case-list" id="outboundList"></div>
           </div>
 
-          <div class="col">
-            <h3 class="section-title">Inbound cases</h3>
+          <div class="col inbound">
+            <h3 class="section-title">Inbound cases <span class="section-count" id="inboundCount">0</span></h3>
             <div class="case-list" id="inboundList"></div>
           </div>
         </div>

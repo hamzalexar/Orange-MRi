@@ -29,6 +29,8 @@ if (!outboundListEl || !inboundListEl) {
     searchInput: document.querySelector("#searchInput"),
     outcomeFilter: document.querySelector("#outcomeFilter"),
     countLabel: document.querySelector("#countLabel"),
+    outboundCount: document.querySelector("#outboundCount"),
+    inboundCount: document.querySelector("#inboundCount"),
 
     exportJsonBtn: document.querySelector("#exportJsonBtn"),
     exportCsvBtn: document.querySelector("#exportCsvBtn"),
@@ -95,6 +97,15 @@ if (!outboundListEl || !inboundListEl) {
     });
   }
 
+  function outcomeTone(outcome) {
+    const v = normalizeText(outcome);
+    if (!v) return "";
+    if (v.includes("escalated")) return "tone-bad";
+    if (v.includes("call ok") || v.includes("confirms solved")) return "tone-ok";
+    if (v.includes("callback") || v.includes("tech planned") || v.includes("ringring")) return "tone-warn";
+    return "";
+  }
+
   function buildCaseCard(c) {
     const ts = Number(c.createdAt) || 0;
     const date = ts
@@ -113,16 +124,18 @@ const time = ts
     })
   : "";
 
+    const outcomeBadge = c.outcome
+      ? `<span class="badge ${outcomeTone(c.outcome)}">${escapeHtml(c.outcome)}</span>`
+      : "";
+
     return `
       <div class="case-card" data-id="${escapeHtml(c.id)}" role="button" tabindex="0">
         <div class="case-top">
           <div>
             <div class="case-code">${escapeHtml(c.customerCode || "")}</div>
-            <div class="case-meta">
-              <span>${escapeHtml(date)} • ${escapeHtml(time)}</span>
-              <span>${escapeHtml(c.outcome || "")}</span>
-            </div>
+            <div class="case-datetime">${escapeHtml(date)} • ${escapeHtml(time)}</div>
           </div>
+          ${outcomeBadge}
         </div>
 
         <div class="case-snippet">
@@ -132,9 +145,9 @@ const time = ts
 </div>
 
         <div class="case-meta case-meta-bottom">
-          <span>${escapeHtml(c.interaction || "")}</span>
-          <span>${escapeHtml(c.contactType || "")}</span>
-          <button class="btn danger js-delete" type="button" style="margin-left:auto;">Delete</button>
+          <span class="badge">${escapeHtml(c.interaction || "")}</span>
+          ${c.contactType ? `<span class="badge">${escapeHtml(c.contactType)}</span>` : ""}
+          <button class="btn danger js-delete" type="button">Delete</button>
         </div>
       </div>
     `;
@@ -168,6 +181,9 @@ const time = ts
       outbound.map(buildCaseCard).join("") || `<div class="muted">No outbound cases</div>`;
     els.inboundList.innerHTML =
       inbound.map(buildCaseCard).join("") || `<div class="muted">No inbound cases</div>`;
+
+    if (els.outboundCount) els.outboundCount.textContent = String(outbound.length);
+    if (els.inboundCount) els.inboundCount.textContent = String(inbound.length);
 
     if (els.countLabel) {
       const total = caseRepository.getAll().length;

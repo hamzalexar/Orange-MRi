@@ -38,8 +38,26 @@
       margin-top:18px;
       height:38px;
     }
+    .login-links{
+      display:flex;
+      justify-content:space-between;
+      margin-top:14px;
+      font-size:13px;
+    }
+    .login-links a{
+      color: var(--accent);
+      text-decoration:none;
+      cursor:pointer;
+    }
+    .login-links a:hover{ text-decoration:underline; }
     .login-error{
       color:var(--danger);
+      font-size:13px;
+      margin-top:10px;
+      display:none;
+    }
+    .login-success{
+      color:#067647;
       font-size:13px;
       margin-top:10px;
       display:none;
@@ -58,7 +76,7 @@
   </header>
 
   <div class="login-wrap">
-    <section class="panel login-panel">
+    <section class="panel login-panel" id="signinPanel">
       <h1>Inloggen</h1>
       <div class="muted">Log in met je account om je worklog te gebruiken.</div>
 
@@ -74,6 +92,43 @@
         <button class="btn primary" id="loginBtn" type="submit">Inloggen</button>
         <div class="login-error" id="loginError"></div>
       </form>
+
+      <div class="login-links">
+        <a id="showSignupLink">Nog geen account? Registreren</a>
+        <a href="forgot-password.html">Wachtwoord vergeten?</a>
+      </div>
+    </section>
+
+    <section class="panel login-panel" id="signupPanel" hidden>
+      <h1>Account aanmaken</h1>
+      <div class="muted">Vraag de toegangscode aan iemand die al toegang heeft.</div>
+
+      <form id="signupForm" autocomplete="on">
+        <label class="field">
+          <span>E-mail</span>
+          <input class="input" id="signupEmail" type="email" autocomplete="username" required />
+        </label>
+        <label class="field">
+          <span>Wachtwoord</span>
+          <input class="input" id="signupPassword" type="password" autocomplete="new-password" minlength="6" required />
+        </label>
+        <label class="field">
+          <span>Herhaal wachtwoord</span>
+          <input class="input" id="signupPasswordConfirm" type="password" autocomplete="new-password" minlength="6" required />
+        </label>
+        <label class="field">
+          <span>Toegangscode</span>
+          <input class="input" id="signupAccessCode" type="text" required />
+        </label>
+        <button class="btn primary" id="signupBtn" type="submit">Account aanmaken</button>
+        <div class="login-error" id="signupError"></div>
+        <div class="login-success" id="signupSuccess"></div>
+      </form>
+
+      <div class="login-links">
+        <a id="showSigninLink">Heb je al een account? Inloggen</a>
+        <span></span>
+      </div>
     </section>
   </div>
 

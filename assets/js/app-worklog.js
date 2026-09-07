@@ -3,7 +3,6 @@ import { qs, fillSelect } from "./ui/dom.js";
 import { copyToClipboard } from "./ui/clipboard.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
 import { formatDateTime } from "./ui/datetime.js";
-import { draftRepository } from "./features/cases/draftRepository.js";
 import { initNavbar } from "./ui/navbar.js";
 import { requireAuth } from "./core/auth.js";
 initNavbar();
@@ -32,10 +31,8 @@ const els = {
   customerCalled: qs("#customerCalled"),
   majorOutageYes: qs("#majorOutageYes"),
   majorOutageNo: qs("#majorOutageNo"),
-  interruptBtn: qs("#interruptBtn"),
-resumeBtn: qs("#resumeBtn"),
-
-
+  outboundBtn: qs("#outboundBtn"),
+  inboundBtn: qs("#inboundBtn"),
 };
 
 let selectedId = null;
@@ -101,31 +98,6 @@ function syncMajorOutageLine() {
   els.preAnalysis.value = lines.join("\n");
 }
 
-function getDraftData() {
-  // we saven alles wat in het form zit + context
-  return {
-    selectedId,
-    form: getFormData(),
-    savedAt: Date.now(),
-  };
-}
-
-function loadDraft(draft) {
-  if (!draft) return;
-  selectedId = draft.selectedId ?? null;
-  setFormData(draft.form ?? {});
-  els.editLabel.textContent = selectedId
-    ? `Editing (resumed): ${draft.form?.customerCode || selectedId}`
-    : "Resumed draft (new case)";
-}
-
-function updateResumeButton() {
-  const count = draftRepository.peekStackCount();
-  els.resumeBtn.disabled = count === 0;
-  els.resumeBtn.textContent = count === 0 ? "Resume previous" : `Resume previous (${count})`;
-}
-
-
 function resetForm() {
   selectedId = null;
   els.editLabel.textContent = "Create a new case";
@@ -161,32 +133,44 @@ function buildWorklogText(data) {
   if (data.handledAt) {
     addSection(lines, "Handled at", formatDateTime(data.handledAt));
   }
-  
+
   // remove laatste lege lijn
   while (lines.length && lines[lines.length - 1] === "") lines.pop();
 
   return lines.join("\n");
 }
 
-els.resetBtn.addEventListener("click", resetForm);
-
-// Autosave gebeurt al via de form-brede "change"-listener verderop.
-els.majorOutageYes.addEventListener("change", syncMajorOutageLine);
-els.majorOutageNo.addEventListener("change", syncMajorOutageLine);
-
-els.saveBtn.addEventListener("click", () => {
-  const data = getFormData();
-
+// Slaat het huidige formulier op (nieuw of update) en geeft de case terug.
+function saveCurrentCase(data) {
   if (!selectedId) {
     const created = caseRepository.create(data);
     selectedId = created.id;
-    els.editLabel.textContent = `Saved: ${created.customerCode || created.id}`;
-  } else {
-    const updated = caseRepository.update(selectedId, data);
-    els.editLabel.textContent = `Updated: ${updated?.customerCode || selectedId}`;
+    return created;
   }
+  return caseRepository.update(selectedId, data) ?? caseRepository.getById(selectedId);
+}
+
+els.resetBtn.addEventListener("click", resetForm);
+
+els.majorOutageYes.addEventListener("change", syncMajorOutageLine);
+els.majorOutageNo.addEventListener("change", syncMajorOutageLine);
+
+els.outboundBtn.addEventListener("click", () => {
+  els.interaction.value = "Outbound";
+});
+els.inboundBtn.addEventListener("click", () => {
+  els.interaction.value = "Inbound";
 });
 
+els.saveBtn.addEventListener("click", () => {
+  const data = getFormData();
+  const wasNew = !selectedId;
+  const saved = saveCurrentCase(data);
+  els.editLabel.textContent = `${wasNew ? "Saved" : "Updated"}: ${saved?.customerCode || saved?.id || ""}`;
+});
+
+// Copy slaat de case ook meteen op (nieuw of update), zodat je nooit een
+// gekopieerde worklog hebt die niet ook in Cases/Stats terechtkomt.
 els.copyBtn.addEventListener("click", async () => {
   const data = getFormData();
   const text = buildWorklogText(data);
@@ -197,49 +181,17 @@ els.copyBtn.addEventListener("click", async () => {
     return;
   }
 
+  const saved = saveCurrentCase(data);
+  els.editLabel.textContent = `Saved: ${saved?.customerCode || saved?.id || ""}`;
+
   try {
     await copyToClipboard(text);
-    els.copyBtn.textContent = "Copied ✓";
-    setTimeout(() => (els.copyBtn.textContent = "Copy"), 900);
+    els.copyBtn.textContent = "Saved & copied ✓";
   } catch {
-    els.copyBtn.textContent = "Copy failed";
-    setTimeout(() => (els.copyBtn.textContent = "Copy"), 900);
+    els.copyBtn.textContent = "Saved, copy failed";
   }
+  setTimeout(() => (els.copyBtn.textContent = "Copy"), 1200);
 });
-
-els.interruptBtn.addEventListener("click", () => {
-  // bewaar huidige case op de stack
-  draftRepository.pushToStack(getDraftData());
-
-  // start nieuwe (interrupt) case
-  resetForm();
-
-  const lastDraft = draftRepository.getDraft();
-  if (lastDraft?.form) {
-    loadDraft(lastDraft);
-  }
-  updateResumeButton();
-  
-
-  // bewaar ook deze lege start als "current draft"
-  draftRepository.saveDraft(getDraftData());
-
-  updateResumeButton();
-  els.editLabel.textContent = "New interrupt case (fresh)";
-});
-
-els.resumeBtn.addEventListener("click", () => {
-  const prev = draftRepository.popFromStack();
-  if (!prev) return;
-
-  loadDraft(prev);
-  draftRepository.saveDraft(getDraftData());
-  updateResumeButton();
-});
-
-
-
-
 
 const caseIdFromUrl = new URLSearchParams(window.location.search).get("caseId");
 const caseFromUrl = caseIdFromUrl ? caseRepository.getById(caseIdFromUrl) : null;
@@ -251,21 +203,3 @@ if (caseFromUrl) {
 } else {
   resetForm();
 }
-
-let autosaveTimer = null;
-
-function scheduleAutosave() {
-  clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(() => {
-    // current draft (not stack) = latest state (optional but useful)
-    draftRepository.saveDraft(getDraftData());
-    updateResumeButton();
-  }, 400);
-}
-
-// autosave op input/change
-const formEl = qs("#worklogForm");
-formEl.addEventListener("input", scheduleAutosave);
-formEl.addEventListener("change", scheduleAutosave);
-
-

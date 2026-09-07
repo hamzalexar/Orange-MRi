@@ -35,13 +35,14 @@ function makeId() {
   return `${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
 }
 
-// Enkel deze velden gaan naar Supabase (puur voor de Stats-pagina).
-// De volledige worklog (problem description, pre-analysis, actions done,
-// task, ring ring, technician date, to-do, contact type, outcome) blijft
-// uitsluitend lokaal per toestel staan.
+// Enkel deze velden gaan naar Supabase (voor de Stats-pagina, incl. de
+// Task-filter). De rest van de worklog (problem description, pre-analysis,
+// actions done, ring ring, technician date, to-do, contact type, outcome)
+// blijft uitsluitend lokaal per toestel staan.
 const REMOTE_FIELDS = [
   "id",
   "customerCode",
+  "task",
   "interaction",
   "customerCalled",
   "createdAt",

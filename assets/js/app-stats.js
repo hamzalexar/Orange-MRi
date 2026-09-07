@@ -48,6 +48,7 @@ const els = {
   chartMonth: qs("#chartMonth"),
 
   flowFilter: qs("#flowFilter"),
+  taskFilter: qs("#taskFilter"),
 
   incidentCount: qs("#incidentCount"),
   incidentSub: qs("#incidentSub"),
@@ -107,6 +108,41 @@ function matchesFlow(c, flow) {
   if (flow === "inbound") return isInbound(c);
   if (flow === "outbound") return isOutbound(c);
   return true; // all
+}
+
+function matchesTask(c, task) {
+  if (!task || task === "all") return true;
+  return String(c.task ?? "").trim() === task;
+}
+
+// Vult de Task-filter met de unieke, effectief gebruikte task-waarden
+// (niet de vaste datalist), zodat hij altijd overeenkomt met je echte data.
+function fillTaskFilter(allCases) {
+  const tasks = new Set();
+  for (const c of allCases) {
+    const t = String(c.task ?? "").trim();
+    if (t) tasks.add(t);
+  }
+  const sorted = Array.from(tasks).sort((a, b) => a.localeCompare(b));
+
+  const prevValue = els.taskFilter.value;
+  els.taskFilter.innerHTML = "";
+
+  const allOpt = document.createElement("option");
+  allOpt.value = "all";
+  allOpt.textContent = "All tasks";
+  els.taskFilter.appendChild(allOpt);
+
+  for (const t of sorted) {
+    const opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t;
+    els.taskFilter.appendChild(opt);
+  }
+
+  if (prevValue && (prevValue === "all" || sorted.includes(prevValue))) {
+    els.taskFilter.value = prevValue;
+  }
 }
 
 // -------- period state (replaces the old native <select>/<input type=month>)
@@ -381,6 +417,7 @@ function render() {
   const all = caseRepository.getAll();
 
   fillYearPicker(all);
+  fillTaskFilter(all);
 
   const period = currentPeriod;
   setPickerVisibility(period);
@@ -395,14 +432,17 @@ function render() {
   const { fromTs, toTs, label } = getRange(period);
 
   const flow = els.flowFilter?.value || "all";
+  const task = els.taskFilter?.value || "all";
 
-  // KPI range + flow
-  const items = all.filter((c) => inRange(c, fromTs, toTs) && matchesFlow(c, flow));
+  // KPI range + flow + task
+  const items = all.filter(
+    (c) => inRange(c, fromTs, toTs) && matchesFlow(c, flow) && matchesTask(c, task)
+  );
 
-  // charts should also respect flow
-  const filteredAll = all.filter((c) => matchesFlow(c, flow));
+  // charts should also respect flow + task
+  const filteredAll = all.filter((c) => matchesFlow(c, flow) && matchesTask(c, task));
 
-  console.log("render() cases:", all.length, "flow:", flow, "items:", items.length);
+  console.log("render() cases:", all.length, "flow:", flow, "task:", task, "items:", items.length);
 
   const total = items.length;
   const inbound = items.filter(isInbound);
@@ -483,6 +523,7 @@ els.monthMonthSelect.addEventListener("change", render);
 els.monthYearSelect.addEventListener("change", render);
 els.yearPicker.addEventListener("change", render);
 els.flowFilter?.addEventListener("change", render);
+els.taskFilter?.addEventListener("change", render);
 els.btnToday.addEventListener("click", setToday);
 
 // boot

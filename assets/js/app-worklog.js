@@ -6,8 +6,31 @@ import { formatDateTime } from "./ui/datetime.js";
 import { initNavbar } from "./ui/navbar.js";
 import { requireAuth } from "./core/auth.js";
 initNavbar();
-await requireAuth();
+const session = await requireAuth();
 await caseRepository.init();
+
+// Formulier blijft staan tot je expliciet op Reset drukt, ook als je
+// tussendoor naar een andere pagina navigeert. Per-gebruiker sleutel,
+// zelfde patroon als caseRepository, zodat een collega op hetzelfde
+// toestel dit nooit te zien krijgt.
+const DRAFT_KEY = `bot_worklog_draft_v2::${session.user.id}`;
+
+function saveDraftState() {
+  localStorage.setItem(DRAFT_KEY, JSON.stringify({ selectedId, form: getFormData() }));
+}
+
+function clearDraftState() {
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+function loadDraftState() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 
 
@@ -150,16 +173,26 @@ function saveCurrentCase(data) {
   return caseRepository.update(selectedId, data) ?? caseRepository.getById(selectedId);
 }
 
-els.resetBtn.addEventListener("click", resetForm);
+els.resetBtn.addEventListener("click", () => {
+  resetForm();
+  clearDraftState();
+});
+
+// Autosave: elke wijziging in het formulier blijft bewaard tot Reset.
+const formEl = qs("#worklogForm");
+formEl.addEventListener("input", saveDraftState);
+formEl.addEventListener("change", saveDraftState);
 
 els.majorOutageYes.addEventListener("change", syncMajorOutageLine);
 els.majorOutageNo.addEventListener("change", syncMajorOutageLine);
 
 els.outboundBtn.addEventListener("click", () => {
   els.interaction.value = "Outbound";
+  saveDraftState();
 });
 els.inboundBtn.addEventListener("click", () => {
   els.interaction.value = "Inbound";
+  saveDraftState();
 });
 
 els.saveBtn.addEventListener("click", () => {
@@ -167,6 +200,7 @@ els.saveBtn.addEventListener("click", () => {
   const wasNew = !selectedId;
   const saved = saveCurrentCase(data);
   els.editLabel.textContent = `${wasNew ? "Saved" : "Updated"}: ${saved?.customerCode || saved?.id || ""}`;
+  saveDraftState(); // ✅ nu weet de draft ook het (eventueel nieuwe) selectedId
 });
 
 // Copy slaat de case ook meteen op (nieuw of update), zodat je nooit een
@@ -183,6 +217,7 @@ els.copyBtn.addEventListener("click", async () => {
 
   const saved = saveCurrentCase(data);
   els.editLabel.textContent = `Saved: ${saved?.customerCode || saved?.id || ""}`;
+  saveDraftState(); // ✅ nu weet de draft ook het (eventueel nieuwe) selectedId
 
   try {
     await copyToClipboard(text);
@@ -201,5 +236,14 @@ if (caseFromUrl) {
   setFormData(caseFromUrl);
   els.editLabel.textContent = `Editing: ${caseFromUrl.customerCode || caseFromUrl.id}`;
 } else {
-  resetForm();
+  const draft = loadDraftState();
+  if (draft?.form) {
+    selectedId = draft.selectedId ?? null;
+    setFormData(draft.form);
+    els.editLabel.textContent = selectedId
+      ? `Editing: ${draft.form.customerCode || selectedId}`
+      : "Create a new case";
+  } else {
+    resetForm();
+  }
 }

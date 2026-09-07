@@ -12,7 +12,7 @@
   /* KPI row */
   .stats-page .kpi-row{
     display:grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap:14px;
   }
   
@@ -279,5 +279,8 @@
   }
   .stats-page .kpi-card.outbound::before{
     background: linear-gradient(90deg, var(--accent), rgba(249,115,22,0.25));
+  }
+  .stats-page .kpi-card.incidents::before{
+    background: linear-gradient(90deg, #8b5cf6, rgba(139,92,246,0.25));
   }
 

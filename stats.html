@@ -60,6 +60,12 @@
             <div class="kpi-value" id="calledCustomers">0</div>
             <div class="muted" id="calledSub">—</div>
           </div>
+
+          <div class="kpi-card incidents">
+            <div class="kpi-title">Incidents</div>
+            <div class="kpi-value" id="incidentCount">0</div>
+            <div class="muted" id="incidentSub">—</div>
+          </div>
         </div>
 
         <!-- Body: sidebar + main -->
@@ -168,6 +174,15 @@
                 <div class="panel-body">
                   <div class="chart-wrap"><canvas id="chartMonth"></canvas></div>
                 </div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top:14px;">
+              <div class="panel-head">
+                <div class="panel-title">Incidents per day</div>
+              </div>
+              <div class="panel-body">
+                <div class="chart-wrap"><canvas id="chartIncidents"></canvas></div>
               </div>
             </div>
           </section>

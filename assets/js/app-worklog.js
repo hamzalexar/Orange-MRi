@@ -2,12 +2,14 @@ import { DROPDOWNS } from "./config/dropdowns.js";
 import { qs, fillSelect } from "./ui/dom.js";
 import { copyToClipboard } from "./ui/clipboard.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
+import { incidentRepository } from "./features/incidents/incidentRepository.js";
 import { formatDateTime } from "./ui/datetime.js";
 import { initNavbar } from "./ui/navbar.js";
 import { requireAuth } from "./core/auth.js";
 initNavbar();
 const session = await requireAuth();
 await caseRepository.init();
+await incidentRepository.init();
 
 // Formulier blijft staan tot je expliciet op Reset drukt, ook als je
 // tussendoor naar een andere pagina navigeert. Per-gebruiker sleutel,
@@ -56,6 +58,7 @@ const els = {
   majorOutageNo: qs("#majorOutageNo"),
   outboundBtn: qs("#outboundBtn"),
   inboundBtn: qs("#inboundBtn"),
+  incidentBtn: qs("#incidentBtn"),
 };
 
 let selectedId = null;
@@ -193,6 +196,16 @@ els.outboundBtn.addEventListener("click", () => {
 els.inboundBtn.addEventListener("click", () => {
   els.interaction.value = "Inbound";
   saveDraftState();
+});
+
+els.incidentBtn.addEventListener("click", () => {
+  const title = prompt("Incident title:");
+  if (title === null) return; // geannuleerd
+  if (!title.trim()) return;
+
+  incidentRepository.create(title);
+  els.incidentBtn.textContent = "Incident saved ✓";
+  setTimeout(() => (els.incidentBtn.textContent = "Incident"), 1200);
 });
 
 els.saveBtn.addEventListener("click", () => {

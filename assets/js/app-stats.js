@@ -1,9 +1,11 @@
 import { qs } from "./ui/dom.js";
 import { caseRepository } from "./features/cases/caseRepository.js";
+import { incidentRepository } from "./features/incidents/incidentRepository.js";
 import { requireAuth, signOut } from "./core/auth.js";
 await requireAuth();
 document.getElementById("signOutBtn")?.addEventListener("click", signOut);
 await caseRepository.init();
+await incidentRepository.init();
 
 console.log("app-stats.js loaded ✅");
 
@@ -46,6 +48,10 @@ const els = {
   chartMonth: qs("#chartMonth"),
 
   flowFilter: qs("#flowFilter"),
+
+  incidentCount: qs("#incidentCount"),
+  incidentSub: qs("#incidentSub"),
+  chartIncidents: qs("#chartIncidents"),
 };
 
 // -------- date helpers
@@ -174,6 +180,7 @@ function getRange(period) {
 // blauw voor inbound. Canvas kent geen CSS var(), dus hier letterlijk.
 const CHART_ORANGE = "#f97316";
 const CHART_BLUE = "#2563eb";
+const CHART_PURPLE = "#8b5cf6";
 const CHART_FONT = "system-ui, -apple-system, Segoe UI, Roboto, Arial";
 
 const chartInstances = {};
@@ -442,6 +449,15 @@ function render() {
 
   const month = groupLastNMonths(filteredAll, toTs, 12);
   renderBarChart(els.chartMonth, month.labels, month.values, chartColor);
+
+  // Incidents — los van de flow-filter, want een incident is geen in/outbound case.
+  const allIncidents = incidentRepository.getAll();
+  const incidentsInRange = allIncidents.filter((i) => inRange(i, fromTs, toTs));
+  els.incidentCount.textContent = String(incidentsInRange.length);
+  els.incidentSub.textContent = `in ${period}`;
+
+  const incidentDay = groupLastNDays(allIncidents, toTs, 14);
+  renderBarChart(els.chartIncidents, incidentDay.labels, incidentDay.values, CHART_PURPLE);
 }
 
 function setToday() {

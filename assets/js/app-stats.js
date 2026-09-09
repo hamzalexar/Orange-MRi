@@ -147,6 +147,7 @@ function fillTaskFilter(allCases) {
 
 // -------- period state (replaces the old native <select>/<input type=month>)
 let currentPeriod = "day";
+let monthPickerDefaulted = false;
 const MONTH_NAMES = Array.from({ length: 12 }, (_, i) =>
   new Date(2000, i, 1).toLocaleDateString(undefined, { month: "long" })
 );
@@ -478,9 +479,14 @@ function render() {
   setPickerVisibility(period);
 
   if (period === "day" && !els.dayPicker.value) els.dayPicker.value = toDateInputValue(new Date());
-  if (period === "month" && !els.monthYearSelect.value) {
+  // ⚠️ Niet op `!els.monthYearSelect.value` checken: fillTaskFilter/fillYearPicker
+  // hierboven vult monthYearSelect al met opties (waardoor de browser de eerste
+  // optie selecteert), dus die staat altijd al "gezet" tegen de tijd dat je hier
+  // komt. Een aparte one-shot vlag houdt de echte eerste-keer-status bij.
+  if (period === "month" && !monthPickerDefaulted) {
     els.monthMonthSelect.value = String(new Date().getMonth() + 1);
     els.monthYearSelect.value = String(new Date().getFullYear());
+    monthPickerDefaulted = true;
   }
   if (period === "year" && !els.yearPicker.value) els.yearPicker.value = String(new Date().getFullYear());
 

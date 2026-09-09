@@ -536,13 +536,19 @@ function render() {
   const hourLabels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
   renderLineChart(els.chartHour, hourLabels, hourBins, chartColor);
 
-  const day = groupLastNDays(filteredAll, toTs, 14);
+  // "Laatste N dagen/weken/maanden"-grafieken zijn een rollend recent
+  // venster, los van welke periode je koos — als je bv. "Year" kiest, moet
+  // dat venster gewoon tot vandaag lopen, niet tot 31 december (anders zie
+  // je enkel lege, nog niet bestaande toekomstige dagen).
+  const rollingEndTs = Math.min(toTs, Date.now());
+
+  const day = groupLastNDays(filteredAll, rollingEndTs, 14);
   renderBarChart(els.chartDay, day.labels, day.values, chartColor);
 
-  const week = groupLastNWeeks(filteredAll, toTs, 8);
+  const week = groupLastNWeeks(filteredAll, rollingEndTs, 8);
   renderBarChart(els.chartWeek, week.labels, week.values, chartColor);
 
-  const month = groupLastNMonths(filteredAll, toTs, 12);
+  const month = groupLastNMonths(filteredAll, rollingEndTs, 12);
   renderBarChart(els.chartMonth, month.labels, month.values, chartColor);
 
   // Incidents — los van de flow-filter, want een incident is geen in/outbound case.
@@ -555,7 +561,7 @@ function render() {
   const INCIDENT_STATUS_LABELS = { open: "Open", followup: "Follow-up" };
   const INCIDENT_STATUS_COLORS = { open: "#f59e0b", followup: "#3b82f6" };
 
-  const incidentDay = groupLastNDaysByStatus(allIncidents, toTs, 14, INCIDENT_STATUSES);
+  const incidentDay = groupLastNDaysByStatus(allIncidents, rollingEndTs, 14, INCIDENT_STATUSES);
   renderStackedBarChart(
     els.chartIncidents,
     incidentDay.labels,

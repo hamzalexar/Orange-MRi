@@ -216,7 +216,6 @@ function getRange(period) {
 // blauw voor inbound. Canvas kent geen CSS var(), dus hier letterlijk.
 const CHART_ORANGE = "#f97316";
 const CHART_BLUE = "#2563eb";
-const CHART_PURPLE = "#8b5cf6";
 const CHART_FONT = "system-ui, -apple-system, Segoe UI, Roboto, Arial";
 
 const chartInstances = {};
@@ -295,6 +294,39 @@ function renderBarChart(canvas, labels, values, color) {
   });
 }
 
+// Gestapelde bar-chart met één kleur per status (Open/Follow-up/Closed),
+// gebruikt voor de Incidents per day-grafiek.
+function renderStackedBarChart(canvas, labels, series) {
+  if (!canvas) return;
+  destroyChart(canvas.id);
+
+  const options = baseChartOptions();
+  options.scales.x.stacked = true;
+  options.scales.y.stacked = true;
+  options.plugins.legend = {
+    display: true,
+    position: "bottom",
+    labels: { color: "rgba(2,6,23,0.65)", font: { size: 11, family: CHART_FONT }, boxWidth: 10 },
+  };
+  options.plugins.tooltip.callbacks.label = (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}`;
+
+  chartInstances[canvas.id] = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: series.map((s) => ({
+        label: s.label,
+        data: s.data,
+        backgroundColor: s.color,
+        hoverBackgroundColor: s.color,
+        borderRadius: 4,
+        maxBarThickness: 36,
+      })),
+    },
+    options,
+  });
+}
+
 function renderLineChart(canvas, labels, values, color) {
   if (!canvas) return;
   destroyChart(canvas.id);
@@ -344,6 +376,29 @@ function groupLastNDays(cases, endTs, days = 14) {
     values.push(count);
   }
   return { labels, values };
+}
+
+// Zelfde dag-buckets als groupLastNDays, maar telt per status apart
+// (Open/Follow-up/Closed) i.p.v. één totaal.
+function groupLastNDaysByStatus(items, endTs, days, statuses) {
+  const labels = [];
+  const seriesValues = {};
+  for (const s of statuses) seriesValues[s] = [];
+
+  const startTs = startOfDay(new Date(addDays(endTs, -(days - 1))));
+  for (let i = 0; i < days; i++) {
+    const dayStart = addDays(startTs, i);
+    const dayEnd = endOfDay(new Date(dayStart));
+    const dayItems = items.filter((c) => inRange(c, dayStart, dayEnd));
+    labels.push(new Date(dayStart).toLocaleDateString(undefined, { month: "2-digit", day: "2-digit" }));
+
+    for (const s of statuses) {
+      seriesValues[s].push(
+        dayItems.filter((it) => (statuses.includes(it.status) ? it.status : "open") === s).length
+      );
+    }
+  }
+  return { labels, seriesValues };
 }
 
 function weekKey(ts) {
@@ -496,8 +551,20 @@ function render() {
   els.incidentCount.textContent = String(incidentsInRange.length);
   els.incidentSub.textContent = `in ${period}`;
 
-  const incidentDay = groupLastNDays(allIncidents, toTs, 14);
-  renderBarChart(els.chartIncidents, incidentDay.labels, incidentDay.values, CHART_PURPLE);
+  const INCIDENT_STATUSES = ["open", "followup"];
+  const INCIDENT_STATUS_LABELS = { open: "Open", followup: "Follow-up" };
+  const INCIDENT_STATUS_COLORS = { open: "#f59e0b", followup: "#3b82f6" };
+
+  const incidentDay = groupLastNDaysByStatus(allIncidents, toTs, 14, INCIDENT_STATUSES);
+  renderStackedBarChart(
+    els.chartIncidents,
+    incidentDay.labels,
+    INCIDENT_STATUSES.map((s) => ({
+      label: INCIDENT_STATUS_LABELS[s],
+      data: incidentDay.seriesValues[s],
+      color: INCIDENT_STATUS_COLORS[s],
+    }))
+  );
 }
 
 function setToday() {

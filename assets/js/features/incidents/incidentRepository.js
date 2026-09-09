@@ -5,6 +5,13 @@ import { supabase } from "../../config.js";
 // (niet gedeeld tussen collega's) — elke gebruiker heeft zijn eigen
 // localStorage-sleutel, en de Supabase RLS-policy laat enkel de eigenaar
 // (auth.uid() = user_id) erbij.
+//
+// TODO (bewust uitgesteld): createdBy/closedBy tonen nu gewoon het e-mailadres.
+// Zolang incidenten privé per gebruiker zijn, zie je hier toch altijd enkel je
+// eigen naam, dus een zelfgekozen nickname voegt niets toe. Als deze lijst
+// ooit gedeeld wordt tussen collega's, is dit het moment om een verplichte
+// "kies je nickname"-popup toe te voegen (user_metadata.nickname via
+// supabase.auth.updateUser) en die hier i.p.v. user.email te gebruiken.
 const LEGACY_STORAGE_KEY = "bot_worklog_incidents_shared_v1";
 const SYNC_META_KEY = "bot_worklog_incidents_sync_meta_v1";
 const TABLE = "worklog_incidents";
@@ -116,6 +123,9 @@ export const incidentRepository = {
     return this.getAll().find((x) => x.id === id) ?? null;
   },
 
+  // status is een vaste tag ("open" = ik open een nieuw incident, "followup"
+  // = ik logde een opvolging), geen levenscyclus. Er bestaat bewust geen
+  // "closed" — of iets afgesloten is, houdt deze lijst niet bij.
   async create(title, status = "open") {
     const {
       data: { user },
@@ -127,12 +137,10 @@ export const incidentRepository = {
     const item = {
       id: makeId(),
       title: String(title ?? "").trim(),
-      status: ["open", "followup", "closed"].includes(status) ? status : "open",
+      status: status === "followup" ? "followup" : "open",
       createdAt: ts,
       updatedAt: ts,
       createdBy: user?.email ?? "onbekend",
-      closedAt: null,
-      closedBy: null,
     };
 
     all.push(item);
@@ -143,21 +151,14 @@ export const incidentRepository = {
   },
 
   async setStatus(id, status) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     const all = this.getAll();
     const idx = all.findIndex((x) => x.id === id);
     if (idx === -1) return null;
 
-    const closing = status === "closed";
     const updated = {
       ...all[idx],
-      status,
+      status: status === "followup" ? "followup" : "open",
       updatedAt: Date.now(),
-      closedAt: closing ? Date.now() : null,
-      closedBy: closing ? user?.email ?? "onbekend" : null,
     };
 
     all[idx] = updated;

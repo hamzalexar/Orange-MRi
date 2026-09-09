@@ -23,16 +23,15 @@ if (!rowsEl) {
     return String(s ?? "").trim().toLowerCase();
   }
 
-  const STATUS_LABELS = { open: "Open", followup: "Follow-up", closed: "Closed" };
+  const STATUS_LABELS = { open: "Open", followup: "Follow-up" };
 
   function badge(status) {
     return `<span class="badge ${status}"><span class="dot"></span>${STATUS_LABELS[status]}</span>`;
   }
 
-  function cycleStatus(current) {
-    if (current === "open") return "followup";
-    if (current === "followup") return "closed";
-    return "open";
+  // Vaste tag, geen cyclus: gewoon wisselen tussen de twee opties.
+  function toggleStatus(current) {
+    return current === "open" ? "followup" : "open";
   }
 
   function escapeHtml(str) {
@@ -44,10 +43,10 @@ if (!rowsEl) {
       .replaceAll("'", "&#039;");
   }
 
-  // Bestaande incidenten (van vóór status/opened-by bestond) hebben geen
-  // status-veld — die behandelen we gewoon als "open".
+  // Bestaande incidenten (van vóór status bestond) hebben geen status-veld
+  // — die behandelen we gewoon als "open".
   function statusOf(it) {
-    return ["open", "followup", "closed"].includes(it.status) ? it.status : "open";
+    return it.status === "followup" ? "followup" : "open";
   }
 
   function load() {
@@ -61,7 +60,7 @@ if (!rowsEl) {
     let out = items.filter((it) => {
       if (status !== "all" && statusOf(it) !== status) return false;
       if (!q) return true;
-      const hay = `${it.title} ${it.createdBy} ${it.closedBy}`.toLowerCase();
+      const hay = `${it.title} ${it.createdBy}`.toLowerCase();
       return hay.includes(q);
     });
 
@@ -74,9 +73,8 @@ if (!rowsEl) {
     const total = items.length;
     const open = items.filter((i) => statusOf(i) === "open").length;
     const followup = items.filter((i) => statusOf(i) === "followup").length;
-    const closed = items.filter((i) => statusOf(i) === "closed").length;
 
-    els.summaryLine.textContent = `${total} total • ${open} open • ${followup} follow-up • ${closed} closed`;
+    els.summaryLine.textContent = `${total} total • ${open} open • ${followup} follow-up`;
   }
 
   function rowHtml(it) {
@@ -89,10 +87,9 @@ if (!rowsEl) {
         <td>${badge(status)}</td>
         <td><div class="title">${escapeHtml(it.title)}</div></td>
         <td>${escapeHtml(it.createdBy || "—")}</td>
-        <td>${escapeHtml(it.closedBy || "—")}</td>
         <td style="text-align:right;">
           <div class="row-actions">
-            <button class="btn small" data-action="cycle" type="button">Change status</button>
+            <button class="btn small" data-action="toggle" type="button">Switch to ${status === "open" ? "Follow-up" : "Open"}</button>
             <button class="btn small danger" data-action="delete" type="button">Delete</button>
           </div>
         </td>
@@ -139,8 +136,8 @@ if (!rowsEl) {
       return;
     }
 
-    if (action === "cycle") {
-      await incidentRepository.setStatus(id, cycleStatus(statusOf(current)));
+    if (action === "toggle") {
+      await incidentRepository.setStatus(id, toggleStatus(statusOf(current)));
       render();
     }
   }

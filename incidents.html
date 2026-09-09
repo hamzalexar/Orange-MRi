@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BOT Worklog – Incidents</title>
+
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/incidents.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+  <div class="incidents-page">
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <div>
+          <div class="title">BOT Cable MRI</div>
+          <div class="subtitle">Worklog tool</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="index.html" class="nav-link" data-page="worklog">Worklog</a>
+        <a href="cases.html" class="nav-link" data-page="cases">Cases</a>
+        <a href="stats.html" class="nav-link" data-page="stats">Stats</a>
+        <a href="followups.html" class="nav-link" data-page="followups">Follow-ups</a>
+        <a href="incidents.html" class="nav-link active" data-page="incidents">Incidents</a>
+        <button class="btn ghost" id="signOutBtn" type="button">Sign out</button>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Incidents</div>
+            <div class="muted" id="summaryLine">—</div>
+          </div>
+
+          <div class="panel-tools">
+            <input class="input" id="searchInput" placeholder="Search…" />
+            <select class="input" id="statusFilter">
+              <option value="all">All</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <!-- Quick add -->
+          <div class="quick-add">
+            <div class="qa-grid">
+              <div class="field">
+                <span class="muted">Title</span>
+                <input class="input" id="titleInput" placeholder="e.g. Node X down in region Y" />
+              </div>
+
+              <div class="field qa-actions">
+                <span class="muted">&nbsp;</span>
+                <button class="btn primary" id="btnAdd" type="button">Add incident</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="table-wrap">
+            <table class="table" aria-label="Incidents table">
+              <thead>
+                <tr>
+                  <th style="width:150px;">Date</th>
+                  <th style="width:120px;">Status</th>
+                  <th>Title</th>
+                  <th style="width:160px;">Opened by</th>
+                  <th style="width:160px;">Closed by</th>
+                  <th style="width:120px; text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <div class="muted" id="emptyState" style="display:none; margin-top:12px;">
+            No incidents yet. Add one above 👆
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./assets/js/app-incidents.js"></script>
+</body>
+</html>

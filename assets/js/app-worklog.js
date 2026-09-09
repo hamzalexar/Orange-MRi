@@ -198,12 +198,12 @@ els.inboundBtn.addEventListener("click", () => {
   saveDraftState();
 });
 
-els.incidentBtn.addEventListener("click", () => {
+els.incidentBtn.addEventListener("click", async () => {
   const title = prompt("Incident title:");
   if (title === null) return; // geannuleerd
   if (!title.trim()) return;
 
-  incidentRepository.create(title);
+  await incidentRepository.create(title);
   els.incidentBtn.textContent = "Incident saved ✓";
   setTimeout(() => (els.incidentBtn.textContent = "Incident"), 1200);
 });

@@ -1,7 +1,11 @@
 import { readJson, writeJson } from "../../core/storage.js";
 import { supabase } from "../../config.js";
 
-const LEGACY_STORAGE_KEY = "bot_worklog_incidents_v1";
+// Incidenten blijven, zoals cases/followups, per-gebruiker afgeschermd
+// (niet gedeeld tussen collega's) — elke gebruiker heeft zijn eigen
+// localStorage-sleutel, en de Supabase RLS-policy laat enkel de eigenaar
+// (auth.uid() = user_id) erbij.
+const LEGACY_STORAGE_KEY = "bot_worklog_incidents_shared_v1";
 const SYNC_META_KEY = "bot_worklog_incidents_sync_meta_v1";
 const TABLE = "worklog_incidents";
 
@@ -112,15 +116,23 @@ export const incidentRepository = {
     return this.getAll().find((x) => x.id === id) ?? null;
   },
 
-  create(title) {
+  async create(title) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const all = this.getAll();
     const ts = Date.now();
 
     const item = {
       id: makeId(),
       title: String(title ?? "").trim(),
+      status: "open",
       createdAt: ts,
       updatedAt: ts,
+      createdBy: user?.email ?? "onbekend",
+      closedAt: null,
+      closedBy: null,
     };
 
     all.push(item);
@@ -128,6 +140,31 @@ export const incidentRepository = {
 
     remoteUpsertMany([item]).catch((e) => console.warn("Incident create push failed:", e));
     return item;
+  },
+
+  async setStatus(id, status) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const all = this.getAll();
+    const idx = all.findIndex((x) => x.id === id);
+    if (idx === -1) return null;
+
+    const closing = status === "closed";
+    const updated = {
+      ...all[idx],
+      status,
+      updatedAt: Date.now(),
+      closedAt: closing ? Date.now() : null,
+      closedBy: closing ? user?.email ?? "onbekend" : null,
+    };
+
+    all[idx] = updated;
+    writeJson(currentStorageKey, all);
+
+    remoteUpsertMany([updated]).catch((e) => console.warn("Incident status push failed:", e));
+    return updated;
   },
 
   remove(id) {

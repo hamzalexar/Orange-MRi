@@ -114,6 +114,41 @@
   .worklog-page .btn.primary{
     box-shadow: 0 6px 18px rgba(255,128,0,0.25);
   }
+
+  /* Incident modal */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,0.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .modal-overlay[hidden]{ display:none; }
+
+  .modal-box{
+    background:#fff;
+    border-radius:16px;
+    padding:20px;
+    width:100%;
+    max-width:380px;
+    box-shadow: 0 20px 50px rgba(15,23,42,0.25);
+  }
+
+  .modal-title{
+    font-weight:800;
+    font-size:16px;
+    margin-bottom:14px;
+  }
+
+  .modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:18px;
+  }
   
   /* ===== Responsive ===== */
   @media (max-width: 900px){

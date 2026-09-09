@@ -162,8 +162,36 @@
     </section>
   </main>
 
-  
-  
+  <div class="modal-overlay" id="incidentModal" hidden>
+    <div class="modal-box">
+      <div class="modal-title">New incident</div>
+
+      <label class="field">
+        <span>Title</span>
+        <input class="input" id="incidentModalTitle" placeholder="e.g. Node X down in region Y" />
+      </label>
+
+      <label class="field" style="margin-top:12px;">
+        <span>Status</span>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="incidentModalStatus" id="incidentModalStatusOpen" value="open" checked />
+            <span>Open</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="incidentModalStatus" id="incidentModalStatusFollowup" value="followup" />
+            <span>Follow-up</span>
+          </label>
+        </div>
+      </label>
+
+      <div class="modal-actions">
+        <button class="btn ghost" id="incidentModalCancel" type="button">Cancel</button>
+        <button class="btn primary" id="incidentModalSave" type="button">Save incident</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 <script type="module" src="./assets/js/app-worklog.js"></script>
 </body>

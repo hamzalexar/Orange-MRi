@@ -59,6 +59,12 @@ const els = {
   outboundBtn: qs("#outboundBtn"),
   inboundBtn: qs("#inboundBtn"),
   incidentBtn: qs("#incidentBtn"),
+
+  incidentModal: qs("#incidentModal"),
+  incidentModalTitle: qs("#incidentModalTitle"),
+  incidentModalStatusOpen: qs("#incidentModalStatusOpen"),
+  incidentModalCancel: qs("#incidentModalCancel"),
+  incidentModalSave: qs("#incidentModalSave"),
 };
 
 let selectedId = null;
@@ -198,16 +204,36 @@ els.inboundBtn.addEventListener("click", () => {
   saveDraftState();
 });
 
-els.incidentBtn.addEventListener("click", async () => {
-  const title = prompt("Incident title:");
-  if (title === null) return; // geannuleerd
-  if (!title.trim()) return;
+function openIncidentModal() {
+  els.incidentModalTitle.value = "";
+  els.incidentModalStatusOpen.checked = true;
+  els.incidentModal.hidden = false;
+  els.incidentModalTitle.focus();
+}
 
-  const statusInput = prompt("Status — type 'open' or 'followup':", "open");
-  if (statusInput === null) return; // geannuleerd
-  const status = statusInput.trim().toLowerCase() === "followup" ? "followup" : "open";
+function closeIncidentModal() {
+  els.incidentModal.hidden = true;
+}
+
+els.incidentBtn.addEventListener("click", openIncidentModal);
+els.incidentModalCancel.addEventListener("click", closeIncidentModal);
+
+els.incidentModal.addEventListener("click", (e) => {
+  if (e.target === els.incidentModal) closeIncidentModal(); // klik naast de box
+});
+
+els.incidentModalSave.addEventListener("click", async () => {
+  const title = els.incidentModalTitle.value.trim();
+  if (!title) {
+    els.incidentModalTitle.focus();
+    return;
+  }
+
+  const status = els.incidentModalStatusOpen.checked ? "open" : "followup";
 
   await incidentRepository.create(title, status);
+  closeIncidentModal();
+
   els.incidentBtn.textContent = "Incident saved ✓";
   setTimeout(() => (els.incidentBtn.textContent = "Incident"), 1200);
 });

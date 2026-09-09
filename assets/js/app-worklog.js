@@ -203,7 +203,11 @@ els.incidentBtn.addEventListener("click", async () => {
   if (title === null) return; // geannuleerd
   if (!title.trim()) return;
 
-  await incidentRepository.create(title);
+  const statusInput = prompt("Status — type 'open' or 'followup':", "open");
+  if (statusInput === null) return; // geannuleerd
+  const status = statusInput.trim().toLowerCase() === "followup" ? "followup" : "open";
+
+  await incidentRepository.create(title, status);
   els.incidentBtn.textContent = "Incident saved ✓";
   setTimeout(() => (els.incidentBtn.textContent = "Incident"), 1200);
 });

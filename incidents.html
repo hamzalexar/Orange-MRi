@@ -44,6 +44,7 @@
             <select class="input" id="statusFilter">
               <option value="all">All</option>
               <option value="open">Open</option>
+              <option value="followup">Follow-up</option>
               <option value="closed">Closed</option>
             </select>
           </div>
@@ -56,6 +57,14 @@
               <div class="field">
                 <span class="muted">Title</span>
                 <input class="input" id="titleInput" placeholder="e.g. Node X down in region Y" />
+              </div>
+
+              <div class="field">
+                <span class="muted">Status</span>
+                <select class="input" id="statusInput">
+                  <option value="open">Open</option>
+                  <option value="followup">Follow-up</option>
+                </select>
               </div>
 
               <div class="field qa-actions">

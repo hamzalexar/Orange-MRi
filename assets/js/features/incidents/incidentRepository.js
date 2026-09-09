@@ -116,7 +116,7 @@ export const incidentRepository = {
     return this.getAll().find((x) => x.id === id) ?? null;
   },
 
-  async create(title) {
+  async create(title, status = "open") {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -127,7 +127,7 @@ export const incidentRepository = {
     const item = {
       id: makeId(),
       title: String(title ?? "").trim(),
-      status: "open",
+      status: ["open", "followup", "closed"].includes(status) ? status : "open",
       createdAt: ts,
       updatedAt: ts,
       createdBy: user?.email ?? "onbekend",

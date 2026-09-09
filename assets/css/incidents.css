@@ -33,7 +33,7 @@
 
 .incidents-page .qa-grid{
   display:grid;
-  grid-template-columns: minmax(0, 1fr) 180px;
+  grid-template-columns: minmax(0, 1fr) 180px 180px;
   gap:12px;
   align-items:end;
 }
@@ -112,7 +112,8 @@
   border-radius:999px;
 }
 
-.incidents-page .badge.open .dot{ background:#dc2626; }
+.incidents-page .badge.open .dot{ background:#f59e0b; }
+.incidents-page .badge.followup .dot{ background:#3b82f6; }
 .incidents-page .badge.closed .dot{ background:#22c55e; }
 
 .incidents-page .title{ font-weight:800; }

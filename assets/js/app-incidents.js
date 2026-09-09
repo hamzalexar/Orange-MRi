@@ -15,6 +15,7 @@ if (!rowsEl) {
     statusFilter: document.getElementById("statusFilter"),
 
     titleInput: document.getElementById("titleInput"),
+    statusInput: document.getElementById("statusInput"),
     btnAdd: document.getElementById("btnAdd"),
   };
 
@@ -22,10 +23,16 @@ if (!rowsEl) {
     return String(s ?? "").trim().toLowerCase();
   }
 
+  const STATUS_LABELS = { open: "Open", followup: "Follow-up", closed: "Closed" };
+
   function badge(status) {
-    const label = status === "closed" ? "Closed" : "Open";
-    const cls = status === "closed" ? "closed" : "open";
-    return `<span class="badge ${cls}"><span class="dot"></span>${label}</span>`;
+    return `<span class="badge ${status}"><span class="dot"></span>${STATUS_LABELS[status]}</span>`;
+  }
+
+  function cycleStatus(current) {
+    if (current === "open") return "followup";
+    if (current === "followup") return "closed";
+    return "open";
   }
 
   function escapeHtml(str) {
@@ -40,7 +47,7 @@ if (!rowsEl) {
   // Bestaande incidenten (van vóór status/opened-by bestond) hebben geen
   // status-veld — die behandelen we gewoon als "open".
   function statusOf(it) {
-    return it.status === "closed" ? "closed" : "open";
+    return ["open", "followup", "closed"].includes(it.status) ? it.status : "open";
   }
 
   function load() {
@@ -66,15 +73,15 @@ if (!rowsEl) {
   function updateSummary(items) {
     const total = items.length;
     const open = items.filter((i) => statusOf(i) === "open").length;
+    const followup = items.filter((i) => statusOf(i) === "followup").length;
     const closed = items.filter((i) => statusOf(i) === "closed").length;
 
-    els.summaryLine.textContent = `${total} total • ${open} open • ${closed} closed`;
+    els.summaryLine.textContent = `${total} total • ${open} open • ${followup} follow-up • ${closed} closed`;
   }
 
   function rowHtml(it) {
     const status = statusOf(it);
     const date = it.createdAt ? formatDateTime(it.createdAt) : "—";
-    const toggleLabel = status === "open" ? "Close" : "Reopen";
 
     return `
       <tr data-id="${escapeHtml(it.id)}">
@@ -85,7 +92,7 @@ if (!rowsEl) {
         <td>${escapeHtml(it.closedBy || "—")}</td>
         <td style="text-align:right;">
           <div class="row-actions">
-            <button class="btn small" data-action="toggle" type="button">${toggleLabel}</button>
+            <button class="btn small" data-action="cycle" type="button">Change status</button>
             <button class="btn small danger" data-action="delete" type="button">Delete</button>
           </div>
         </td>
@@ -107,8 +114,9 @@ if (!rowsEl) {
     const title = String(els.titleInput.value ?? "").trim();
     if (!title) return alert("Please enter a title.");
 
-    await incidentRepository.create(title);
+    await incidentRepository.create(title, els.statusInput.value || "open");
     els.titleInput.value = "";
+    els.statusInput.value = "open";
     render();
   }
 
@@ -131,9 +139,8 @@ if (!rowsEl) {
       return;
     }
 
-    if (action === "toggle") {
-      const next = statusOf(current) === "open" ? "closed" : "open";
-      await incidentRepository.setStatus(id, next);
+    if (action === "cycle") {
+      await incidentRepository.setStatus(id, cycleStatus(statusOf(current)));
       render();
     }
   }
